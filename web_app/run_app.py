@@ -6,9 +6,9 @@ app = Flask(__name__, template_folder='../templates', static_folder='../static')
 def index():
 	return render_template('index.html')
 
-@app.route('/user/<name>')
+@app.route('/user/<name>', methods=['GET', 'POST'])
 def user(name):
-	return '<h1>Hello, %s!</h1>' % name
+	return render_template('user.html', name=name)
 
 if __name__ == '__main__':
     print("start")
