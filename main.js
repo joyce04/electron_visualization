@@ -37,7 +37,6 @@ function createWindow(){
 // initialization and is ready to create browser mainWindow.
 // Some APIs can only be used after this event occurs.
 app.on('ready', ()=>{
-
 	// spawn server
 	subpy = require('child_process').spawn('python3', [__dirname + '/web_app/run_app.py']);
   createWindow()
