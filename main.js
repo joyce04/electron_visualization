@@ -1,8 +1,4 @@
-'use strict';
-
-const electron = require('electron');
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
+const {app, BrowserWindow} = require('electron');
 const path = require('path');
 
 // Keep a global reference of the mainWindowdow object, if you don't, the mainWindowdow will
@@ -10,16 +6,8 @@ const path = require('path');
 var mainWindow = null;
 var subpy = null;
 
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser mainWindow.
-// Some APIs can only be used after this event occurs.
-app.on('ready', function() {
-	
-	// spawn server
-	subpy = require('child_process').spawn('python', [__dirname + '/web_app/run_app.py']);
-
-  // Create the browser mainWindow
+function createWindow(){
+	// Create the browser mainWindow
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -33,32 +21,44 @@ app.on('ready', function() {
   });
 
     // Load the index page
-    mainWindow.loadURL('http://localhost:4040/');
-  
+	mainWindow.loadFile('./test.html')
+  // mainWindow.loadURL('http://localhost:5000/');
+
 	// Open the DevTools.
-	//mainWindow.webContents.openDevTools();
+	mainWindow.webContents.openDevTools();
 
 	// Emitted when the mainWindow is closed.
-	mainWindow.on('closed', function() {
+	mainWindow.on('closed', ()=>{
     // Dereference the mainWindow object
     mainWindow = null;
   });
-	
+}
+// This method will be called when Electron has finished
+// initialization and is ready to create browser mainWindow.
+// Some APIs can only be used after this event occurs.
+app.on('ready', ()=>{
+
+	// spawn server
+	subpy = require('child_process').spawn('python3', [__dirname + '/web_app/run_app.py']);
+  createWindow()
+
 });
 
 // disable menu
-electron.app.on('browser-window-created',function(e,window) {
+app.on('browser-window-created', (e,window)=>{
     window.setMenu(null);
 });
 
 // ------- app terminated
-
-app.on('window-all-closed', function() {
-	// quit app if windows are closed
-  app.quit();
+app.on('window-all-closed', ()=>{
+	// On macOs it is common for application and their icon
+  // to stay active until the user quits explicitly with Cmd + q
+  if(process.platform !== 'darwin'){
+    app.quit()
+  }
 });
 
-app.on('quit', function() {
+app.on('quit', ()=>{
 	// kill the python server on exit
   subpy.kill('SIGINT');
 });
