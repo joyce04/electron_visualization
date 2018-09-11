@@ -1,16 +1,18 @@
 {
-  "name": "electron-flask",
-  "version": "0.0.1",
+  "name": "football_vis",
+  "version": "1.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "node_modules/.bin/electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package-osx": "electron-packager ./ football_vis --platform=darwin --arch=x64 --ignore=node_modules/electron-* --overwrite"
   },
   "keywords": [],
-  "author": "gracelee & kyleyou",
+  "author": "gracelee, kyleyou",
   "license": "ISC",
-  "dependencies": {
-    "electron": "^2.0.9"
+  "devDependencies": {
+    "electron": "^2.0.9",
+    "electron-packager": "^12.1.1"
   }
 }

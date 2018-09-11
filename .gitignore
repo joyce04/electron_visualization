@@ -1,3 +1,4 @@
 node_modules/
 .DS_Store
 Pipfile
+football_vis-darwin-x64/
