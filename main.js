@@ -12,7 +12,7 @@ function createWindow(){
     width: 800,
     height: 600,
     // transparent: true, // transparent header bar
-    icon: __dirname + '/icon.png',
+    icon: __dirname + '/web/resource/icon.png',
     // fullscreen: true,
     // opacity:0.8,
     // darkTheme: true,
@@ -38,26 +38,28 @@ function createWindow(){
 // Some APIs can only be used after this event occurs.
 app.on('ready', ()=>{
 	// spawn server
-	subpy = require('child_process').spawn('python3', [__dirname + '/web_app/run_app.py']);
-  createWindow()
-
+	subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+  createWindow();
+	addAppEventListeners();
 });
 
-// disable menu
-app.on('browser-window-created', (e,window)=>{
-    window.setMenu(null);
-});
+function addAppEventListeners(){
+	// disable menu
+	app.on('browser-window-created', (e,window)=>{
+	    window.setMenu(null);
+	});
 
-// ------- app terminated
-app.on('window-all-closed', ()=>{
-	// On macOs it is common for application and their icon
-  // to stay active until the user quits explicitly with Cmd + q
-  if(process.platform !== 'darwin'){
-    app.quit()
-  }
-});
+	// ------- app terminated
+	app.on('window-all-closed', ()=>{
+		// On macOs it is common for application and their icon
+	  // to stay active until the user quits explicitly with Cmd + q
+	  if(process.platform !== 'darwin'){
+	    app.quit()
+	  }
+	});
 
-app.on('quit', ()=>{
-	// kill the python server on exit
-  subpy.kill('SIGINT');
-});
+	app.on('quit', ()=>{
+		// kill the python server on exit
+	  subpy.kill('SIGINT');
+	});
+}
