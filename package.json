@@ -1,16 +1,29 @@
 {
   "name": "football_vis",
   "version": "1.0.0",
-  "description": "",
+  "description": "An Electron Application with Python Flask and D3 to visualize football data",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "package-osx": "electron-packager ./ football_vis --platform=darwin --arch=x64 --ignore=node_modules/electron-* --overwrite"
+    "package-osx": "electron-packager ./ football_vis --platform=darwin --arch=x64 --ignore=node_modules/electron-* --overwrite",
+    "package-linux": "electron-packager ./ football_vis --platform=linux --arch=x64 --ignore=node_modules/electron-* --overwrite"
   },
-  "keywords": [],
-  "author": "gracelee, kyleyou",
+  "keywords": [
+    "electron",
+    "football",
+    "flask",
+    "D3",
+    "visualization"
+  ],
+  "author": {
+    "name": "gracelee, kyleyou"
+    },
   "license": "ISC",
+  "repository":{
+    "type":"git",
+    "url":"https://github.com/joyce04/football_visualization.git"
+  }
   "devDependencies": {
     "electron": "^2.0.9",
     "electron-packager": "^12.1.1"
