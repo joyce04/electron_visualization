@@ -18,14 +18,17 @@
   ],
   "author": {
     "name": "gracelee, kyleyou"
-    },
+  },
   "license": "ISC",
-  "repository":{
-    "type":"git",
-    "url":"https://github.com/joyce04/football_visualization.git"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joyce04/football_visualization.git"
+  },
   "devDependencies": {
     "electron": "^2.0.9",
     "electron-packager": "^12.1.1"
+  },
+  "dependencies": {
+    "d3": "^5.7.0"
   }
 }
