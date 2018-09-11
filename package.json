@@ -1,0 +1,16 @@
+{
+  "name": "football_vis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "gracelee, kyleyou",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^2.0.9"
+  }
+}
