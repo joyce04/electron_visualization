@@ -21,7 +21,7 @@ function createWindow(){
   });
 
     // Load the index page
-	mainWindow.loadFile('./index.html')
+	mainWindow.loadFile('./web/init.html')
   // mainWindow.loadURL('http://localhost:5000/');
 
 	// Open the DevTools.
