@@ -21,11 +21,11 @@ function createWindow(){
   });
 
     // Load the index page
-	mainWindow.loadFile('./test.html')
+	mainWindow.loadFile('./index.html')
   // mainWindow.loadURL('http://localhost:5000/');
 
 	// Open the DevTools.
-	mainWindow.webContents.openDevTools();
+	// mainWindow.webContents.openDevTools();
 
 	// Emitted when the mainWindow is closed.
 	mainWindow.on('closed', ()=>{

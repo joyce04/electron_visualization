@@ -1,15 +1,16 @@
-from flask import Flask
+from flask import Flask, request, render_template
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 @app.route('/')
-def hello():
-	# return '<a href="/user/Kyle">Click</a>'
-	return '<h1>Hello World</h1>'
+def index():
+	return render_template('index.html')
 
 @app.route('/user/<name>')
 def user(name):
 	return '<h1>Hello, %s!</h1>' % name
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    print("start")
+    app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)
+    print("end")
