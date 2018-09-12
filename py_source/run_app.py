@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template
 
-app = Flask(__name__, template_folder='../web/', static_folder='../web/resource')
+app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
 @app.route('/')
 def index():
@@ -20,6 +20,18 @@ def user(name):
 		html : user.html
 	"""
 	return render_template('user.html', name=name)
+
+@app.route('/d3/<chart_type>', methods=['GET', 'POST'])
+def open_chart(chart_type):
+	"""
+	Move to chart.html by given chart type
+
+	Args:
+		chart_type (str) : chart type
+	Returns:
+		html : chart.html
+	"""
+	return render_template('bar_chart.html')
 
 if __name__ == '__main__':
     print("start")
