@@ -8,30 +8,31 @@ var subpy = null;
 
 function createWindow(){
 	// Create the browser mainWindow
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    // transparent: true, // transparent header bar
-    icon: __dirname + '/web/resource/icon.png',
-    // fullscreen: true,
-    // opacity:0.8,
-    // darkTheme: true,
-    // frame: false,
-    resizeable: true
-  });
+	mainWindow = new BrowserWindow({
+		width: 1200,
+		height: 1000,
+		// transparent: true, // transparent header bar
+		icon: __dirname + '/web/resource/icon.png',
+		// fullscreen: true,
+		// opacity:0.8,
+		// darkTheme: true,
+		// frame: false,
+		resizeable: true
+	});
 
-    // Load the index page
+	// Load the index page
 	mainWindow.loadFile('./web/init.html')
-  // mainWindow.loadURL('http://localhost:5000/');
+	// mainWindow.loadURL('http://localhost:5000/');
+	// mainWindow.loadFile('./web/d3_test.html')
 
 	// Open the DevTools.
-	// mainWindow.webContents.openDevTools();
+	mainWindow.webContents.openDevTools();
 
 	// Emitted when the mainWindow is closed.
 	mainWindow.on('closed', ()=>{
-    // Dereference the mainWindow object
-    mainWindow = null;
-  });
+		// Dereference the mainWindow object
+		mainWindow = null;
+	});
 }
 // This method will be called when Electron has finished
 // initialization and is ready to create browser mainWindow.
@@ -39,27 +40,27 @@ function createWindow(){
 app.on('ready', ()=>{
 	// spawn server
 	subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
-  createWindow();
+	createWindow();
 	addAppEventListeners();
 });
 
 function addAppEventListeners(){
 	// disable menu
 	app.on('browser-window-created', (e,window)=>{
-	    window.setMenu(null);
+		window.setMenu(null);
 	});
 
 	// ------- app terminated
 	app.on('window-all-closed', ()=>{
 		// On macOs it is common for application and their icon
-	  // to stay active until the user quits explicitly with Cmd + q
-	  if(process.platform !== 'darwin'){
-	    app.quit()
-	  }
+		// to stay active until the user quits explicitly with Cmd + q
+		if(process.platform !== 'darwin'){
+			app.quit()
+		}
 	});
 
 	app.on('quit', ()=>{
 		// kill the python server on exit
-	  subpy.kill('SIGINT');
+		subpy.kill('SIGINT');
 	});
 }
