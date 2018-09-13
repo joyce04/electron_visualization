@@ -31,6 +31,7 @@ window.onload = function (){
     }
   ];
   var d3 = require('d3');
+
   const svg = d3.select('svg');
   const svgContainer = d3.select('#container');
 

@@ -31,7 +31,10 @@ def open_chart(chart_type):
 	Returns:
 		html : chart.html
 	"""
-	return render_template('bar_chart.html')
+	if chart_type == 'radar_chart':
+		return render_template('radar.html')
+	else:
+		return render_template('bar_chart.html')
 
 if __name__ == '__main__':
     print("start")
