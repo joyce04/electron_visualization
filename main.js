@@ -43,7 +43,8 @@ function createWindow(){
 // Some APIs can only be used after this event occurs.
 app.on('ready', ()=>{
 	// spawn server
-	subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+	var subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+	// let subpy = require('child_process').spawn('python3', [path.join(__dirname, '../app.asar.unpacked/my-folder', 'run_app.py')])
 
 	createWindow();
 	addAppEventListeners();
