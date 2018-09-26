@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template
+import pandas as pd
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
@@ -35,6 +36,26 @@ def open_chart(chart_type):
 		return render_template('radar.html')
 	else:
 		return render_template('bar_chart.html')
+
+@app.route('/grid', methods=['GET', 'POST'])
+def open_grid():
+	return render_template('grid.html')
+
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+	f = request.files['file']
+	fext = f.filename.split('.')[1]
+	if fext == 'csv':
+		df = pd.read_csv(f)
+		table_html = df.to_html(index=False)
+	elif fext == 'tsv':
+		df = pd.read_csv(f, sep='\t')
+		table_html = df.to_html(index=False)
+	else:
+		table_html = 'This file is not available format!! Please upload csv or tsv only'
+
+	return render_template('grid.html', df = table_html.replace('`', '\''))
+
 
 if __name__ == '__main__':
     print("start")
