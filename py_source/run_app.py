@@ -1,5 +1,9 @@
-from flask import Flask, request, render_template
+# -- coding: utf-8 --
+
+from flask import Flask, request, render_template, jsonify, escape
 import pandas as pd
+import json
+import collections
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
@@ -39,22 +43,27 @@ def open_chart(chart_type):
 
 @app.route('/grid', methods=['GET', 'POST'])
 def open_grid():
-	return render_template('grid.html')
+	return render_template('grid.html', fext='none', column = [], data = '{}')
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
 	f = request.files['file']
 	fext = f.filename.split('.')[1]
 	if fext == 'csv':
-		df = pd.read_csv(f)
+		df = pd.read_csv(f, index_col=0).reset_index(drop=True)
 		table_html = df.to_html(index=False)
 	elif fext == 'tsv':
-		df = pd.read_csv(f, sep='\t')
+		df = pd.read_csv(f, sep='\t', index_col=0).reset_index(drop=True)
 		table_html = df.to_html(index=False)
 	else:
+		df = pd.DataFrame(['Not Available'], column=[''])
 		table_html = 'This file is not available format!! Please upload csv or tsv only'
 
-	return render_template('grid.html', df = table_html.replace('`', '\''))
+	json_data = collections.OrderedDict()
+	json_data['rows'] = df.to_dict(orient='records')
+	jsonp = json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', ''))
+
+	return render_template('grid.html', fext = fext, column = df.columns.tolist(), data = jsonp)
 
 
 if __name__ == '__main__':

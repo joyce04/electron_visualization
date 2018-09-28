@@ -76,3 +76,28 @@ text.label {
 text.source {
   font-size: 10px;
 }
+
+/* For File Upload */
+.input-file-container {
+  position: relative;
+  width: 225px;
+} 
+.input-file-trigger {
+  display: block;
+  padding: 14px 45px;
+  background: #39D2B4;
+  color: #fff;
+  font-size: 1em;
+  transition: all .4s;
+  cursor: pointer;
+}
+.input-file {
+  position: absolute;
+  top: 0; left: 0;
+  width: 225px;
+  opacity: 0;
+  padding: 14px 0;
+  cursor: pointer;
+}
+
+/* END */
