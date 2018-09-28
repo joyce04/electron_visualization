@@ -1,68 +1,89 @@
 <!DOCTYPE html>
+
 <head>
-  <meta charset="utf-8">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}"/>
-  <style>
-    .input-file-container {
-        position: relative;
-        width: 225px;
-    } 
-    .input-file-trigger {
-        display: block;
-        padding: 14px 45px;
-        background: #39D2B4;
-        color: #fff;
-        font-size: 1em;
-        transition: all .4s;
-        cursor: pointer;
-    }
-    .input-file {
-        position: absolute;
-        top: 0; left: 0;
-        width: 225px;
-        opacity: 0;
-        padding: 14px 0;
-        cursor: pointer;
-    }
-  </style>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelector("html").classList.add('js');
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/jquery-ui.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid.css') }}" />
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-kr.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector("html").classList.add('js');
 
-        var fileInput = document.querySelector(".input-file");
-        var button = document.querySelector(".input-file-trigger");
-        var the_return = document.querySelector(".file-return");
-        
-        button.addEventListener("click", function(event) {
-            fileInput.focus();
-            return false;
-        });  
-        fileInput.addEventListener("change", function(event) {  
-            document.getElementById("upload_file_form").submit();
+            var fileInput = document.querySelector(".input-file");
+            var button = document.querySelector(".input-file-trigger");
+            var the_return = document.querySelector(".file-return");
+
+            button.addEventListener("click", function(event) {
+                fileInput.focus();
+                return false;
+            });
+            fileInput.addEventListener("change", function(event) {
+                document.getElementById("upload_file_form").submit();
+            });
+        }, false);
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var fext = '{{ fext }}';
+
+            if (fext == 'csv' || fext == 'tsv') {
+                var data = {{ data | tojson }};
+                var columns = '{{ column }}';
+                columns = columns.replace('[', '').replace(']', '').split(',');
+
+                var colModel = [];
+
+                for (i = 0; i < columns.length; i++) {
+                    colModel.push({
+                        label: columns[i].replace(/&#39;/g, '').trim(),
+                        name: columns[i].replace(/&#39;/g, '').trim()
+                    });
+                }
+
+                $("#jqGrid").jqGrid({
+                    data: data.rows,
+                    datatype: "local",
+                    colModel: colModel,
+                    viewrecords: true,
+                    height: 700,
+                    width: 1000,
+                    rowNum: 30,
+                    autowidth: true,
+                    shrinktofit: true,
+                    pager: "#jqGridPager"
+                });
+            }
         });
-
-        var table_html = `{{ df }}`
-        document.getElementById("dataframe_grid").innerHTML = table_html.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&#34;/g,'"');
-    }, false);
-  </script>
+    </script>
 </head>
+
 <body>
-  <div id="history_back">
-    <a href="/"><< Back</a>
-  </div>
-  <br/><br/>
-  <div id="upload_file">
-    <form id="upload_file_form" action="/upload_file" method="post" enctype="multipart/form-data">
-        <div class="input-file-container">  
-            <input class="input-file" id="file" name="file" type="file" multiple>
-            <label tabindex="0" for="file" class="input-file-trigger">Select a file...</label>
-        </div>
-    </form>
-  </div>
-  <br/><br/>
-  <div>
-    <span id="dataframe_grid" />
-  </div>
+    <div id="history_back">
+        <a href="/">
+            << Back</a>
+    </div>
+    <br/><br/>
+    <div id="upload_file">
+        <form id="upload_file_form" action="/upload_file" method="post" enctype="multipart/form-data">
+            <div class="input-file-container">
+                <input class="input-file" id="file" name="file" type="file" multiple>
+                <label tabindex="0" for="file" class="input-file-trigger">Select a file...</label>
+            </div>
+        </form>
+    </div>
+    <br/><br/>
+
+    <table id="jqGrid"></table>
+    <div id="jqGridPager"></div>
+
+    <br/><br/>
+    <div>
+        <span id="dataframe_grid" />
+    </div>
 </body>
+
 </html>
