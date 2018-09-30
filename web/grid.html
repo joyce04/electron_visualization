@@ -3,12 +3,18 @@
 <head>
     <meta charset="utf-8">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"> 
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/jquery-ui.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid.css') }}" />
     <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-kr.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
+    <script>
+		$.jgrid.defaults.width = 1180;
+		$.jgrid.defaults.responsive = true;
+		$.jgrid.defaults.styleUI = 'Bootstrap';
+	</script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelector("html").classList.add('js');
@@ -50,13 +56,22 @@
                     colModel: colModel,
                     viewrecords: true,
                     height: 700,
-                    width: 1000,
+                    width: 1180,
                     rowNum: 30,
                     autowidth: true,
                     shrinktofit: true,
                     pager: "#jqGridPager"
                 });
-            }
+
+                $('#jqGrid').jqGrid('filterToolbar');
+			    $('#jqGrid').jqGrid('navGrid',"#jqGridPager", {                
+                    search: false, // show search button on the toolbar
+                    add: false,
+                    edit: false,
+                    del: false,
+                    refresh: true
+                });
+            };
         });
     </script>
 </head>
@@ -77,8 +92,10 @@
     </div>
     <br/><br/>
 
-    <table id="jqGrid"></table>
-    <div id="jqGridPager"></div>
+    <div id="grid_area">
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
 
     <br/><br/>
     <div>

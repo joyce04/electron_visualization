@@ -1,7 +1,6 @@
 body {
   font-family: 'Open Sans', sans-serif;
-  width: 1200px;
-  height: 1000px;
+  margin: 5px;
 }
 
 div#layout {
@@ -100,4 +99,10 @@ text.source {
   cursor: pointer;
 }
 
+/* END */
+
+/* Grid Area */
+#grid_area {
+  margin: 5px;
+}
 /* END */

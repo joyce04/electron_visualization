@@ -51,13 +51,10 @@ def upload_file():
 	fext = f.filename.split('.')[1]
 	if fext == 'csv':
 		df = pd.read_csv(f, index_col=0).reset_index(drop=True)
-		table_html = df.to_html(index=False)
 	elif fext == 'tsv':
 		df = pd.read_csv(f, sep='\t', index_col=0).reset_index(drop=True)
-		table_html = df.to_html(index=False)
 	else:
-		df = pd.DataFrame(['Not Available'], column=[''])
-		table_html = 'This file is not available format!! Please upload csv or tsv only'
+		df = pd.DataFrame(['Not Available'], columns=['Col'])
 
 	json_data = collections.OrderedDict()
 	json_data['rows'] = df.to_dict(orient='records')
