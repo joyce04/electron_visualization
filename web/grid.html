@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"> 
     <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}" />
+
     <script>window.$ = window.jQuery = require('jquery');</script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-kr.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-en.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
     <script>
 		$.jgrid.defaults.width = 1180;
@@ -38,15 +38,21 @@
 
             if (fext == 'csv' || fext == 'tsv') {
                 var data = {{ data | tojson }};
+                var fname = '{{ fname }}'
+
                 var columns = '{{ column }}';
                 columns = columns.replace('[', '').replace(']', '').split(',');
+                
+                var colw = '{{ colw }}'
+                colw = colw.replace('[', '').replace(']', '').split(',');
 
                 var colModel = [];
 
                 for (i = 0; i < columns.length; i++) {
                     colModel.push({
                         label: columns[i].replace(/&#39;/g, '').trim(),
-                        name: columns[i].replace(/&#39;/g, '').trim()
+                        name: columns[i].replace(/&#39;/g, '').trim(),
+                        width: colw[i]
                     });
                 }
 
@@ -55,22 +61,29 @@
                     datatype: "local",
                     colModel: colModel,
                     viewrecords: true,
-                    height: 700,
-                    width: 1180,
-                    rowNum: 30,
+                    width: 1170,
+                    height: 600,
+                    rowNum: 16,
                     autowidth: true,
                     shrinktofit: true,
-                    pager: "#jqGridPager"
+                    pager: "#jqGridPager",
+                    caption: fname
                 });
 
                 $('#jqGrid').jqGrid('filterToolbar');
 			    $('#jqGrid').jqGrid('navGrid',"#jqGridPager", {                
-                    search: false, // show search button on the toolbar
+                    search: true,
                     add: false,
                     edit: false,
                     del: false,
+                    view: true,
                     refresh: true
-                });
+                },
+                {}, // edit options
+                {}, // add options
+                {}, // delete options
+                { multipleSearch: true } // search options - define multiple search
+                );
             };
         });
     </script>
@@ -81,7 +94,7 @@
         <a href="/">
             << Back</a>
     </div>
-    <br/><br/>
+    <br/>
     <div id="upload_file">
         <form id="upload_file_form" action="/upload_file" method="post" enctype="multipart/form-data">
             <div class="input-file-container">
@@ -90,16 +103,11 @@
             </div>
         </form>
     </div>
-    <br/><br/>
+    <br/>
 
     <div id="grid_area">
         <table id="jqGrid"></table>
         <div id="jqGridPager"></div>
-    </div>
-
-    <br/><br/>
-    <div>
-        <span id="dataframe_grid" />
     </div>
 </body>
 
