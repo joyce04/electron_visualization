@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>2018-28420 Visualization Assignment 02: </title>
+</head>
+<body>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <svg id="chart" width="200", height="200" class='foo'></svg>
+  <svg class='grp'/>
+  <svg class='grp'/>
+  <svg class='grp'/>
+  <div></div>
+  <div id='checkbox_group' height='20'>
+    <input type="checkbox" name="vehicle1" value="Bike"> I have a bike<br>
+  </div>
+  <div id='table_container'/>
+  <script type="text/javascript">
+    // python3 -m http.server
+    d3.csv('test.csv').then(function(data){
+      let sum_a = data.map(k => k['a']).reduce((a, b)=> a + b, 0)
+      console.log(sum_a);
+    });
+    // d3.json('data.json').then(function(data){
+    //   // data is inserted in json format
+    //   // must convert from string
+    //   console.log(k)
+    // });
+
+    // d3.selectAll('rect')
+    // d3.selectAll('#rect') = id rect
+    // d3.selectAll('.rect') = class rect
+
+    //1. chaining
+    // d3.select("#table")
+    //   .selectAll(".selected")
+
+    //2. adding class
+    d3.selectAll('.foo').classed('bar', true);
+
+    d3.selectAll('.foo').classed('bar extra', true);
+
+    // function 일 경우, 각 selection에 대하여 함수의 return에 따라
+    // d3.selectAll('.foo')
+    //   .attr('class', function(c){
+    //     return d3.select(this).attr('class')+' bar'
+    //   });
+
+    // class 여부 확인을 위해
+    console.log(d3.selectAll('.foo').classed('bar'));
+
+    // 3. each
+    d3.selectAll('.grp')
+      .each(function(d, i, nodes){
+        console.log(d);
+        // d = data
+        // i = index
+        // nodes = selector group, nodes[i] === this
+      });
+
+    // 4. call : 호출 바로 앞의 객체를 매개변수로 넘겨준다
+    // use for axis and brush drawing
+    d3.selectAll('div')
+      .call(function(div){
+        div.classed('next_div', true);
+      });
+
+      const xScale = d3.scaleBand()
+                      .rangeRound([0, 100])
+                      .domain([1,2,3]);
+      const yScale = d3.scaleLinear()
+                      .range([100, 0])
+                      .domain([0, 5]);
+
+    let svg = d3.select('svg');
+    svg.append('g')
+      .attr('transform', 'translate(0, 100)')
+      .call(d3.axisLeft(yScale))
+      .call(d3.axisBottom(xScale));
+
+    // 5. additional properties
+    d3.select('#checkbox_group')
+      .selectAll('input')
+      .property('checked', true);
+    let isChecked = d3.select('#checkbox_group')
+                      .selectAll('input')
+                      .property('checked');
+    console.log('check box is checked::: ' + isChecked);
+
+    d3.select('#checkbox_group')
+      .select('input')
+      .text('this is a check box.');
+    console.log(d3.select('#checkbox_group')
+                  .select('input')
+                  .text());
+
+    console.log(d3.select('#checkbox_group')
+                  .html())
+
+    // 6. table
+    let mydata = [{a:1, b:2, c:3}, {a:4, b:5, c:6}]
+    let keys = Object.keys(mydata[0])
+
+    let table = d3.select('#table_container')
+                  .append('table')
+                  .attr('id', 'table')
+    let thead = table.append('thead')
+                      .append('tr')
+                      .selectAll('td')
+                      .data(keys)
+    thead.enter()
+          .append('td')
+          .merge(thead)
+          .text(k => k)
+
+    let tbody = table.append('tbody')
+    // tr에 각 row data가 들어있음 {a:1, b:2, c:3}...
+    let trs = tbody.selectAll('tr')
+                    .data(mydata)
+
+    // td에서 각 entry를 등록
+    // let tds = trs.enter()
+    //               .append('tr')
+    //               .merge(trs)
+    //               .selectAll('td')
+    //               .data(k => Object.entries(k))
+    // tds.enter()
+    //     .append('td')
+    //     .merge(tds)
+    //     .text(d => d[1])
+
+    // 동일한 코드
+    let tds = trs.enter()
+                  .append('tr')
+                  .merge(trs)
+                  .selectAll('td')
+                  .each(function(k){
+                    let tds_each = d3.select(this)
+                                      .data(Object.entries(k))
+                    tds_each.enter()
+                            .append('td')
+                            .merge(tds_each)
+                            .text(d=> d[1])
+                  })
+  </script>
+</body>
+</html>
