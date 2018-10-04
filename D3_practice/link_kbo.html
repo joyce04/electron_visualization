@@ -19,106 +19,149 @@
     <select id='year' name='year'></select>
     <select id='year' name='year'></select>
   </div>
-  <svg id="table" width="30%", height="200"></svg>
-  <svg id="line_chart" width="30%", height="200"></svg>
-  <svg id="bar_chart" width="30%", height="200"></svg>
+  <div id="table_container"></div>
+  <svg id="line_chart" width="50%", height="400"></svg>
+  <svg id="bar_chart" width="50%", height="400"></svg>
   <script type="text/javascript">
     // python3 -m http.server
 
+    let margin = 10
+    let emptySpace = '\u00A0\u00A0'
+
     // 1. load json
     // 2. add options data to selectors (year)
+    let load = ()=>{
+      let loaded_data = {}
 
-    d3.json('data.json')
-      .then(function(data){
+      d3.json('data.json').then(function(data){
         // data is inserted in json format
         // must convert from string
         console.log(data)
         console.log(Object.values(data))
 
-        let loaded_data = {}
         data.forEach((v)=> {
           loaded_data[v['year']]=v['rankings']
         })
-
         addYearSelector(loaded_data)
+        // d3.select('#year').property('value', Object.keys(loaded_data)[0])
+        initialize_table(loaded_data)
+      })
+      return loaded_data
+    }
+    const loaded_data = load()
 
-        function addYearSelector(loaded_data){
-          //insert year data
-          let yearOptions = d3.select('#year')
-                                .attr('class', 'select')
-                                .on('change', yearChange)
-                                // .attr('name', 'name-list')
-                                .selectAll('option')
-                                .data(Object.keys(loaded_data))
-                                .enter()
-                                .append('option')
-          yearOptions.text((d)=> d)
-                      .attr('value', (d)=>d)
-        }
+    function addYearSelector(loaded_data){
+      //insert year data
+      let yearOptions = d3.select('#year')
+                            .attr('class', 'select')
+                            .on('change', redraw)
+                            // .attr('name', 'name-list')
+                            .selectAll('option')
+                            .data(Object.keys(loaded_data))
+                            .enter()
+                            .append('option')
+      yearOptions.text((d)=> d)
+                  .attr('value', (d)=>d)
+    }
 
-        // 3. draw table
-        function yearChange(){
-          let selectedYear = d3.select('div')
-                                .select('#year')
-                                .property('value')
-          console.log(selectedYear)
-          let table_data = loaded_data[selectedYear]
+    // 3. draw table
+    let columns = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']//Object.keys(table_data[0])
+    function initialize_table(loaded_data){
+      let selectedYear = d3.select('div')
+                            .select('#year')
+                            .property('value')
 
-          console.log(table_data)
-        }
-    })
-      //
-      // let table = d3.select('#table_container')
-      //               .append('table')
-      //               .attr('id', 'table')
-      // let thead = table.append('thead')
-      //                   .append('tr')
-      //                   .selectAll('td')
-      //                   .data(keys)
-      // thead.enter()
-      //       .append('td')
-      //       .merge(thead)
-      //       .text(k => k)
-      //
-      // let tbody = table.append('tbody')
-      // // tr에 각 row data가 들어있음 {a:1, b:2, c:3}...
-      // let trs = tbody.selectAll('tr')
-      //                 .data(mydata)
-      //
-      // // td에서 각 entry를 등록
-      // // let tds = trs.enter()
-      // //               .append('tr')
-      // //               .merge(trs)
-      // //               .selectAll('td')
-      // //               .data(k => keys.map(each_key => [each_key, k[each_key]]), tuple => tuple[0])
-      // // tds.enter()
-      // //     .append('td')
-      // //     .merge(tds)
-      // //     .text(d => d[1])
-      //
-      // // 동일한 코드
-      // // let tds = trs.enter()
-      // //               .append('tr')
-      // //               .merge(trs)
-      // //               .selectAll('td')
-      // //               .each(function(k){
-      // //                 let tds_each = d3.select(this)
-      // //                                   .data(Object.entries(k))
-      // //                 tds_each.enter()
-      // //                         .append('td')
-      // //                         .merge(tds_each)
-      // //                         .text(d=> d[1])
-      // //               })
-      //
-      // let tds = trs.enter()
-      //               .append('tr')
-      //               .merge(trs)
-      //               .selectAll('td')
-      //               .data(k => keys.map(each_key => [each_key, k[each_key]]))
-      //               .enter()
-      //               .append('td')
-      //               .text(d => d[1])
+      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
 
+      let table = d3.select('#table_container')
+                    .append('table')
+                    .attr("transform", `translate(${margin}, ${margin})`)
+                    .attr('id', 'table')
+      let thead = table.append('thead')
+                        .append('tr')
+                        .selectAll('th')
+                        .data(columns)
+      thead.enter()
+            .append('th')
+            .merge(thead)
+            .text((k) => emptySpace+k+emptySpace)
+
+      let tbody = table.append('tbody')
+      // tr에 각 row data가 들어있음 {a:1, b:2, c:3}...
+      let trs = tbody.selectAll('tr')
+                      .data(table_data)
+
+      trs.enter()
+          .append('tr')
+          .merge(trs)
+          .selectAll('td')
+          .data((k) => columns.map(each_key => k[each_key]))
+          .enter()
+          .append('td')
+          .text((d) => emptySpace+d)
+    }
+
+    function redraw(){
+      let selectedYear = d3.select('div')
+                            .select('#year')
+                            .property('value')
+
+      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
+      console.log(selectedYear)
+      console.log(table_data)
+
+      let trans = d3.transition()
+                    .duration(1700)
+                    .ease(d3.easeLinear);
+
+      // d3.select('table').transition(trans)
+      let trs = d3.select('table').select('tbody')
+                  .selectAll('tr')
+                  .data(table_data)
+
+      trs.exit()
+          .transition('remove')
+          .duration(2000)
+          .style('opacity', 0)
+          .remove()
+
+      trs.enter()
+        .append('tr')
+        .merge(trs)
+        // .style('opacity', 0)
+        .selectAll('td')
+        .data((k) => columns.map(each_key => k[each_key]))
+        .enter()
+        .append('td')
+        // .text((d)=> emptySpace+d)
+        // .style('opacity', 1)
+        // .transition().tween('text', function(d){
+        //   let cell = d3.select(this).select('td')
+        //   let currentValue = cell.text
+        //   console.log(cell.text)
+        //   console.log(d)
+        //   let i = d3.interpolate(currentValue, d)
+        //
+        //   return function(t){
+        //     cell.text = i(t)
+        //   }
+        // })
+        // .duration(2000)
+
+      let tds = trs.selectAll('td')
+                    .data((k) => columns.map(each_key => k[each_key]))
+      tds.exit()
+          .transition()
+          .duration(2000)
+          .ease(d3.easeLinear)
+          .remove()
+
+      tds.enter()
+          .append('td')
+          .merge(tds)
+          .text((d)=> emptySpace+d)
+
+    }
 
     // d3.selectAll('rect')
     // d3.selectAll('#rect') = id rect
