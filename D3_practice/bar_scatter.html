@@ -36,7 +36,7 @@
 
   let colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
-  let maxScore = 100;
+  let maxScore = 100
   let margin = 10,
       chart_margin = 25;
   let totalWidth = document.getElementById("bar_chart").clientWidth - 2*chart_margin - margin
@@ -112,44 +112,57 @@
   // scatter plot
   function generateScatterData(){
     let scatterData = [];
+    let range_max = parseInt(getRandomNumber(50)/10)*10 + 50
+    console.log('range value :: ' + range_max)
     for (j of Array(100).fill(0).map((v,i) => i)) {
-    scatterData.push({cx: getRandomNumber(100),
-                      cy: getRandomNumber(100),
-                      r: getRandomNumber(25),
+    scatterData.push({cx: getRandomNumber(range_max),
+                      cy: getRandomNumber(range_max),
+                      r: getRandomNumber(20),
                       rgb: [getRandomNumber(255), getRandomNumber(255), getRandomNumber(255)]})
                     };
     return scatterData;
   };
 
-  let scatterTotalHeight = document.getElementById("scatter_plot").clientHeight - 2*chart_margin
-  let scatterXScale = d3.scaleLinear()
-  // .domain([0, d3.max(scatterData, (d) => d.cx)])
-  .domain([0, maxScore])
-  .range([0, totalWidth]);
-  let scatterYScale = d3.scaleLinear()
-  // .domain([0, d3.max(scatterData, (d) => d.cy)])
-  .domain([0, maxScore])
-  .range([scatterTotalHeight, 0]);
-
-  let scatterXAxis = d3.axisBottom().scale(scatterXScale).ticks(10);
-  let scatterYAxis = d3.axisLeft().scale(scatterYScale).ticks(10);
-
   let scatterPlot = d3.select("#scatter_plot");
   const scatter = scatterPlot.append("g")
                               .attr("transform", `translate(${chart_margin+margin}, ${chart_margin-margin})`);
+
+  let scatterTotalHeight = document.getElementById("scatter_plot").clientHeight - 2*chart_margin
+  let scatterXScale = d3.scaleLinear()
+                        // .domain([0, d3.max(scatterData, (d) => d.cx)])
+                        .domain([0, maxScore])
+                        .range([0, totalWidth]);
+  let scatterYScale = d3.scaleLinear()
+                        // .domain([0, d3.max(scatterData, (d) => d.cy)])
+                        .domain([0, maxScore])
+                        .range([scatterTotalHeight, 0]);
+
+  let xBottom = d3.axisBottom().scale(scatterXScale).ticks(10);
+  let yLeft = d3.axisLeft().scale(scatterYScale).ticks(10);
   scatter.append("g")
+          .attr("transform", `translate(0, 0)`)
+          .attr('class', 'yaxis')
           .call(d3.axisLeft(scatterYScale));
   scatter.append("g")
           .attr("transform", `translate(0, ${scatterTotalHeight})`)
+          .attr('class', 'xaxis')
           .call(d3.axisBottom(scatterXScale));
 
   function drawScatterPlot(){
     let scatterData = generateScatterData();
-    console.log(scatterData[10])
 
     let trans = d3.transition()
                   .duration(700)
                   .ease(d3.easeLinear);
+
+    scatterXScale.domain([d3.min(scatterData, (d) => d.cx)
+                        , d3.max(scatterData, (d) => d.cx)])
+    // xBottom.scale(scatterXScale).ticks(10);
+
+    scatterYScale.domain([d3.min(scatterData, (d) => d.cy)
+                        , d3.max(scatterData, (d) => d.cy)])
+
+    // yLeft.scale(scatterYScale).ticks(10);
 
     circles = scatter.selectAll("circle");
     circles.data(scatterData)
@@ -163,19 +176,17 @@
             .attr("fill", (d)=> `rgb(${d.rgb[0]}, ${d.rgb[1]}, ${d.rgb[2]})`)
             .attr("opacity", 0.7);
 
-    circles.exit().remove();
+    scatter.select('.xaxis')
+          .transition()
+          .duration(1500)
+          .call(xBottom.scale(scatterXScale))
 
-    // scatter.selectAll("circle").on("mouseover", function (actual, i){
-    //   let text = d3.select(this).select("text");
-    //   if (text.length<1) {
-    //     d3.select(this).append("text")
-    //     .attr("cx", (d) => scatterXScale(d.cx))
-    //     .attr("cy", (d) => scatterYScale(d.cy))
-    //     .attr("font-size", "20px")
-    //     .attr("fill", "black")
-    //     .text((d)=> "( " + d.cx + ", " + d.cy +" )");
-    //   };
-    // });
+    scatter.select('.yaxis')
+          .transition()
+          .duration(1500)
+          .call(yLeft.scale(scatterYScale))
+
+    circles.exit().remove();
   };
   drawScatterPlot();
   </script>
