@@ -17,7 +17,12 @@
   <h1>BAR CHART</h1>
   <svg id="bar_chart" style="width: 100%; height: 400px;"></svg>
   <div style="height:50px"></div>
-  <h1>SCATTER PLOT</h1><button onclick="drawScatterPlot()" type="button" name="change">update scatter data</button>
+  <h1>SCATTER PLOT</h1>
+  <h5>1. 랜덤으로 cx, cy range를 지정하고<br>
+  2. range 내에서 랜덤으로 cx, cy를 그리고 r는 20이내에서 랜덤으로, rgb는 각각 255이내에서 랜덤으로 데이터를 생성<br>
+  3. x, y축은 각 cx, cy의 최소값 최대값을 기반으로 transition되며<br>
+  4. 각 원도 새로 update, insert, remove된 데이터로 transition됩니다.</h5>
+  <button onclick="drawScatterPlot()" type="button" name="change">update scatter data</button>
   <svg id="scatter_plot" style="width: 100%; height: 600px;"></svg>
 
   <script type="text/javascript">
