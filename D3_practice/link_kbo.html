@@ -114,53 +114,26 @@
                     .duration(1700)
                     .ease(d3.easeLinear);
 
-      // d3.select('table').transition(trans)
       let trs = d3.select('table').select('tbody')
                   .selectAll('tr')
                   .data(table_data)
 
-      trs.exit()
-          .transition('remove')
-          .duration(2000)
-          .style('opacity', 0)
-          .remove()
-
-      trs.enter()
+      let tds = trs.enter()
         .append('tr')
         .merge(trs)
-        // .style('opacity', 0)
         .selectAll('td')
         .data((k) => columns.map(each_key => k[each_key]))
-        .enter()
-        .append('td')
-        // .text((d)=> emptySpace+d)
-        // .style('opacity', 1)
-        // .transition().tween('text', function(d){
-        //   let cell = d3.select(this).select('td')
-        //   let currentValue = cell.text
-        //   console.log(cell.text)
-        //   console.log(d)
-        //   let i = d3.interpolate(currentValue, d)
-        //
-        //   return function(t){
-        //     cell.text = i(t)
-        //   }
-        // })
-        // .duration(2000)
-
-      let tds = trs.selectAll('td')
-                    .data((k) => columns.map(each_key => k[each_key]))
-      tds.exit()
-          .transition()
-          .duration(2000)
-          .ease(d3.easeLinear)
-          .remove()
 
       tds.enter()
           .append('td')
           .merge(tds)
           .text((d)=> emptySpace+d)
 
+      // d3.select("body")
+      //  .transition()
+      //  .style("background-color", "lightblue");
+      trs.exit().remove()
+      tds.exit().remove()
     }
 
     // d3.selectAll('rect')
