@@ -6,7 +6,7 @@
   <title>2018-28420 Visualization Assignment 02: KBO data</title>
   <!-- DATA : KBO data(rank, win, tie, lose, winning rate, winning difference) from 1982 to 2017 except 1999, 2000 -->
   <style>
-  .header text{
+  text{
     fill: black;
     font: 11px sans-serif;
     text-anchor: middle;
@@ -84,6 +84,7 @@
                         .attr('transform', (d,i)=> 'translate('+i*(tableWidth/columns.length)+',0)')
 
       headers.append('text')
+            .style('font-weight', 'bold')
             .text(d=>d)
     }
 
@@ -102,19 +103,24 @@
                     .data(table_data)
                     .enter()
                     .append('g')
-                    .attr('transform', (d,i)=> 'translate('+i*(0)+','+20*i+')')
+                    .attr('transform', (d,i)=> 'translate('+0+','+20*i+')')
                     .attr('class', 'row')
+                    .style('width', '100%')
 
-      
-      rows.append('text')
-            .attr('x', 20/2)
-            .attr('y', 20/2)
-            .text(function(d, i){
-              console.log('++++++++')
-              console.log(d)
-              console.log(i)
-              return columns.map(each_key => d[each_key])
-            })
+      rows.each(function(row, i){
+        let values = columns.map(key => table_data[i][key])
+        let cell = d3.select(this)
+          .append('g')
+          .attr('class', 'cell')
+          .selectAll('g')
+          .data(values)
+          .enter()
+
+        cell.append('g')
+          .attr('transform', (d,k)=> 'translate('+k*(tableWidth/columns.length)+','+0+')')
+          .append('text')
+          .text((d)=>d)
+      })
     }
 
     var get_key = function(d) {
