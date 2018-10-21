@@ -128,42 +128,51 @@
     }
 
     function update_table(selected_data){
-      let rows = d3.select('#table').select('#rows')
-      let update_trs = rows.data(selected_data, get_key)
-      let exit_trs = update_trs.exit()
-      exit_trs.transition()
+
+      let rows = d3.select('#table').select('.rows').selectAll('.row')
+      let original_data = rows.each((d)=>d)
+
+      let update_rows = rows.data(selected_data)
+      let exit_rows = rows.exit()
+
+      // console.log(test)
+
+      // let rows = d3.select('#table').select('#rows')
+      // let update_trs = rows.data(selected_data, get_key)
+      // let exit_trs = update_trs.exit()
+      exit_rows.transition()
               .duration(500)
               .style('opacity', 0)
-              // .remove()
-
-      let enter_trs = update_trs.enter()
-                                .append('tr')
-      // enter_trs.style('opacity', 0)
-
-      update_trs.enter()
-                .append('tr')
-
-      let update_tds = update_trs.selectAll('td')
-      let enter_tds = enter_trs.selectAll('td')
-                                .enter()
-                                .append('td')
-                                .text(d=> emptySpace+d)
-      let trs = update_trs.merge(enter_trs)
-
-      console.log('*****')
-      console.log(enter_trs)
-      trs.sort(function(a,b){return a['rank']>b['rank']})
-                .transition()
-                .duration(500)
-
-      // let trs = update_trs.enter().append('td')
-
-      let tds = update_tds.merge(enter_tds)
-      tds.data((k) => columns.map(each_key => k[each_key]))
-
-      tds.transition()
-          .duration(500)
-          .text(function(d){return emptySpace+d})
+      //         // .remove()
+      //
+      // let enter_trs = update_trs.enter()
+      //                           .append('tr')
+      // // enter_trs.style('opacity', 0)
+      //
+      // update_trs.enter()
+      //           .append('tr')
+      //
+      // let update_tds = update_trs.selectAll('td')
+      // let enter_tds = enter_trs.selectAll('td')
+      //                           .enter()
+      //                           .append('td')
+      //                           .text(d=> emptySpace+d)
+      // let trs = update_trs.merge(enter_trs)
+      //
+      // console.log('*****')
+      // console.log(enter_trs)
+      // trs.sort(function(a,b){return a['rank']>b['rank']})
+      //           .transition()
+      //           .duration(500)
+      //
+      // // let trs = update_trs.enter().append('td')
+      //
+      // let tds = update_tds.merge(enter_tds)
+      // tds.data((k) => columns.map(each_key => k[each_key]))
+      //
+      // tds.transition()
+      //     .duration(500)
+      //     .text(function(d){return emptySpace+d})
       // tds.text(function(d){return emptySpace+d})
 
 
