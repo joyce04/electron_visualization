@@ -6,11 +6,9 @@
   <title>2018-28420 Visualization Assignment 02: KBO data</title>
   <!-- DATA : KBO data(rank, win, tie, lose, winning rate, winning difference) from 1982 to 2017 except 1999, 2000 -->
   <style>
-  .header text{
-    fill: black;
-    font: 11px sans-serif;
-    text-anchor: middle;
-  }
+    /* .selected {
+      fill: green;
+    } */
   </style>
 </head>
 <body>
@@ -21,17 +19,15 @@
     <select id='year' name='year'></select>
     <select id='year' name='year'></select>
   </div>
-  <svg id="table_container"></svg>
+  <div id="table_container"></div>
   <svg id="line_chart" width="50%", height="400"></svg>
   <svg id="bar_chart" width="50%", height="400"></svg>
   <script type="text/javascript">
     // python3 -m http.server
 
-    let margin = 15
+    let margin = 10
     let emptySpace = '\u00A0\u00A0'
-    let tableWidth = 400
-    let tableHeight = 400
-    let columns = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']
+
     // 1. load json
     // 2. add options data to selectors (year)
     let load = ()=>{
@@ -47,8 +43,8 @@
           loaded_data[v['year']]=v['rankings']
         })
         addYearSelector(loaded_data)
-        initializeTableHeader()
-        initializeTableRows(loaded_data)
+        // d3.select('#year').property('value', Object.keys(loaded_data)[0])
+        initialize_table(loaded_data)
       })
       return loaded_data
     }
@@ -59,6 +55,7 @@
       let yearOptions = d3.select('#year')
                             .attr('class', 'select')
                             .on('change', redraw)
+                            // .attr('name', 'name-list')
                             .selectAll('option')
                             .data(Object.keys(loaded_data))
                             .enter()
@@ -67,54 +64,41 @@
                   .attr('value', (d)=>d)
     }
 
-    // 3. draw table header
-    function initializeTableHeader(){
-      let table = d3.select('#table_container')
-                    .attr('width', tableWidth)
-                    .attr('height', tableHeight)
-                    .append('g')
-                    .attr("transform", `translate(${margin}, ${margin})`)
-                    .attr('id', 'table')
-      let headers = table.append('g')
-                        .attr('class', 'header')
-                        .selectAll('g')
-                        .data(columns)
-                        .enter()
-                        .append('g')
-                        .attr('transform', (d,i)=> 'translate('+i*(tableWidth/columns.length)+',0)')
-
-      headers.append('text')
-            .text(d=>d)
-    }
-
-    function initializeTableRows(loaded_data){
+    // 3. draw table
+    let columns = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']//Object.keys(table_data[0])
+    function initialize_table(loaded_data){
       let selectedYear = d3.select('div')
                             .select('#year')
                             .property('value')
-      //
-      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
-      console.log(table_data)
-      let rows = d3.select('#table')
-                    .append('g')
-                    .attr('transform', (d,i)=> 'translate(0,20)')
-                    .attr('class', 'rows')
-                    .selectAll('g')
-                    .data(table_data)
-                    .enter()
-                    .append('g')
-                    .attr('transform', (d,i)=> 'translate('+i*(0)+','+20*i+')')
-                    .attr('class', 'row')
 
-      
-      rows.append('text')
-            .attr('x', 20/2)
-            .attr('y', 20/2)
-            .text(function(d, i){
-              console.log('++++++++')
-              console.log(d)
-              console.log(i)
-              return columns.map(each_key => d[each_key])
-            })
+      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
+
+      let table = d3.select('#table_container')
+                    .append('table')
+                    .attr("transform", `translate(${margin}, ${margin})`)
+                    .attr('id', 'table')
+      let thead = table.append('thead')
+                        .append('tr')
+                        .selectAll('th')
+                        .data(columns)
+      thead.enter()
+            .append('th')
+            .merge(thead)
+            .text((k) => emptySpace+k+emptySpace)
+
+      let tbody = table.append('tbody')
+      // tr에 각 row data가 들어있음 {a:1, b:2, c:3}...
+      let trs = tbody.selectAll('tr')
+                      .data(table_data)
+
+      trs.enter()
+          .append('tr')
+          .merge(trs)
+          .selectAll('td')
+          .data((k) => columns.map(each_key => k[each_key]))
+          .enter()
+          .append('td')
+          .text((d) => emptySpace+d)
     }
 
     var get_key = function(d) {
@@ -122,8 +106,10 @@
     }
 
     function update_table(selected_data){
-      let rows = d3.select('#table').select('#rows')
-      let update_trs = rows.data(selected_data, get_key)
+      let tbody = d3.select('table').select('tbody')
+      let update_trs = tbody
+                  .selectAll('tr')
+                  .data(selected_data, get_key)
       let exit_trs = update_trs.exit()
       exit_trs.transition()
               .duration(500)
