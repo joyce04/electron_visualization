@@ -84,6 +84,7 @@
                         .attr('transform', (d,i)=> 'translate('+i*(tableWidth/columns.length)+',0)')
 
       headers.append('text')
+            .merge(headers)
             .style('font-weight', 'bold')
             .text(d=>d)
     }
@@ -92,7 +93,7 @@
       let selectedYear = d3.select('div')
                             .select('#year')
                             .property('value')
-      //
+
       let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
       console.log(table_data)
       let rows = d3.select('#table')
@@ -100,82 +101,69 @@
                     .attr('transform', (d,i)=> 'translate(0,20)')
                     .attr('class', 'rows')
                     .selectAll('g')
-                    .data(table_data)
-                    .enter()
-                    .append('g')
-                    .attr('transform', (d,i)=> 'translate('+0+','+20*i+')')
-                    .attr('class', 'row')
-                    .style('width', '100%')
+                    .data(table_data, get_key)
 
-      rows.each(function(row, i){
-        let values = columns.map(key => table_data[i][key])
-        let cell = d3.select(this)
-          .append('g')
-          .attr('class', 'cell')
-          .selectAll('g')
-          .data(values)
-          .enter()
-
-        cell.append('g')
-          .attr('transform', (d,k)=> 'translate('+k*(tableWidth/columns.length)+','+0+')')
+      let texts = rows.enter()
           .append('text')
-          .text((d)=>d)
-      })
+          .merge(rows)
+          .attr('y', (d,k)=> k*20)
+          .attr('class', 'row')
+          .style('width', '100%')
+          .selectAll('text')
+          .data((k) => columns.map(each_key => k[each_key]))
+
+      texts.enter()
+          .append('tspan')
+          .attr('x', (d,k)=> k*(tableWidth/columns.length))
+          .style('width', '100%')
+          .text((d) => d)
     }
 
-    var get_key = function(d) {
+    let get_key = function(d) {
+      console.log(d)
       return d['team']
     }
 
     function update_table(selected_data){
+      let rows = d3.select('.rows').selectAll('text')
+      // let origin_data = d3.select('.rows').selectAll('text').each(d=>d['team'])
+      // console.log(origin_data)
+      let update_rows = rows.data(selected_data, get_key)
 
-      let rows = d3.select('#table').select('.rows').selectAll('.row')
-      let original_data = rows.each((d)=>d)
+      let exit_rows = update_rows.exit()
 
-      let update_rows = rows.data(selected_data)
-      let exit_rows = rows.exit()
-
-      // console.log(test)
-
-      // let rows = d3.select('#table').select('#rows')
-      // let update_trs = rows.data(selected_data, get_key)
-      // let exit_trs = update_trs.exit()
       exit_rows.transition()
               .duration(500)
               .style('opacity', 0)
-      //         // .remove()
-      //
-      // let enter_trs = update_trs.enter()
-      //                           .append('tr')
-      // // enter_trs.style('opacity', 0)
-      //
-      // update_trs.enter()
-      //           .append('tr')
-      //
-      // let update_tds = update_trs.selectAll('td')
-      // let enter_tds = enter_trs.selectAll('td')
-      //                           .enter()
-      //                           .append('td')
-      //                           .text(d=> emptySpace+d)
-      // let trs = update_trs.merge(enter_trs)
-      //
-      // console.log('*****')
-      // console.log(enter_trs)
-      // trs.sort(function(a,b){return a['rank']>b['rank']})
-      //           .transition()
-      //           .duration(500)
-      //
-      // // let trs = update_trs.enter().append('td')
-      //
-      // let tds = update_tds.merge(enter_tds)
-      // tds.data((k) => columns.map(each_key => k[each_key]))
-      //
-      // tds.transition()
-      //     .duration(500)
-      //     .text(function(d){return emptySpace+d})
-      // tds.text(function(d){return emptySpace+d})
+      //        .remove()
 
+      update_rows.transition()
+                .delay(400)
+                .duration(500)
+                .attr('y', (d,k)=> k*20)
+      // update_rows.selectAll('text')
+      //             .data((k) => columns.map(each_key => k[each_key]))
+      // update_rows.selectAll('text').selectAll('tspan')
+                  // .text((d) => d)
+      let enter_rows = update_rows.enter()
+                                  .append('text')
 
+      enter_rows.attr('y', (d,k)=> k*20)
+                .attr('class', 'row')
+                .style('width', '100%')
+                .selectAll('text')
+                .data((k) => columns.map(each_key => k[each_key]))
+      let t_rows = update_rows.merge(enter_rows)
+      let update_text = update_rows.selectAll('tspan')
+      let enter_text  = enter_rows.enter()
+                                  .append('tspan')
+                                  .attr('x', (d,k)=> k*(tableWidth/columns.length))
+                                  .style('width', '100%')
+                                  .merge(update_text)
+                                  .text((d) => d)
+
+      let texts = update_text.merge(enter_text)
+      texts.data((k) => columns.map(each_key => k[each_key]))
       // // trs.exit().remove()
     }
 
