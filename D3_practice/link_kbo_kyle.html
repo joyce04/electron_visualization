@@ -84,12 +84,12 @@
             selectedData = databyyear[selectedYear]
 
             updateHeader()
-            updateTable(null)
+            updateTable()
         }
 
         function redraw() {
             previousData = selectedData
-            updateTable(null)
+            updateTable()
         }
 
         function updateHeader() {
@@ -116,7 +116,7 @@
                 .text(String);
         }
 
-        function updateTable(sortOn) {
+        function updateTable() {
             // Update Table by selected year's data
             let selectedYear = d3.select('div')
                 .select('#year')
