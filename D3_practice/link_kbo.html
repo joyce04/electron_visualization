@@ -119,61 +119,63 @@
     }
 
     let get_key = function(d) {
-      console.log(d)
+      // console.log(d)
       return d['team']
-      // return columns.map(each_key => d[each_key])
     }
 
     function update_table(selected_data){
       let rows = d3.select('.rows').selectAll('text')
-      // let origin_data = d3.select('.rows').selectAll('text').each(d=>d['team'])
-      // console.log(origin_data)
       let update_rows = rows.data(selected_data, get_key)
       let exit_rows = update_rows.exit()
 
       // fade exit rows with transition
       exit_rows.transition()
-              .duration(500)
+              .duration(700)
               .style('opacity', 0)
               .remove()
-      // relocate updated rows adjusted to the new rank
-      update_rows.transition()
-                .delay(400)
-                .duration(500)
-                .attr('y', (d,k)=> k*20)
 
       // separate newly inserted rows
       let enter_rows = update_rows.enter()
                                   .append('text')
+      enter_rows.transition()
+              .duration(0)
+              .style('opacity', 0)
+
+      // relocate updated rows adjusted to the new rank
+      update_rows.transition()
+                .delay(700)
+                .duration(700)
+                .attr('y', (d,k)=> k*20)
 
       let changed_rows = update_rows.data(selected_data, function(k){
                       return columns.map(each_key => k[each_key])})
 
-      enter_rows.attr('y', (d,k)=> k*20)
-                .attr('class', 'row')
-                .style('width', '100%')
-                .selectAll('text')
-                .data((k) => columns.map(each_key => k[each_key]))
-      let t_rows = update_rows.merge(enter_rows)
-      let update_text = update_rows.selectAll('tspan')
-      let enter_text  = changed_rows.enter()
-                                  .append('tspan')
-                                  // .selectAll('tspan')
-                                  .attr('x', (d,k)=> k*(tableWidth/columns.length))
-                                  .style('width', '100%')
-                                  // .merge(update_text)
-                                  .data(selected_data, function(k){
-                                                  return columns.map(each_key => k[each_key])})
-                                  .text((d) => d)
+      let update_text = changed_rows.selectAll('tspan')
 
-      let texts = update_text.merge(enter_text)
-      texts.data((k) => columns.map(each_key => k[each_key]))
+      let enter_texts = enter_rows.merge(enter_rows)
+                                  .attr('y', (d,k)=> k*20)
+                                  .attr('class', 'row')
+                                  .style('width', '100%')
+                                  .selectAll('text')
+                                  .data((k) => columns.map(each_key => k[each_key]))
+
+      enter_texts.enter()
+          .append('tspan')
+          .attr('x', (d,k)=> k*(tableWidth/columns.length))
+          .style('width', '100%')
+          .text((d) => d)
+
+      let texts = update_text.data((k) => columns.map(each_key => k[each_key]))
       changed_rows.selectAll('tspan')
                 .transition()
-                .delay(500)
-                .duration(500)
+                .delay(700)
+                .duration(700)
                 .text(d=>d)
-      // exit_rows.remove()
+
+      enter_rows.transition()
+              .delay(1000)
+              .duration(900)
+              .style('opacity', 1)
     }
 
     function redraw(){
