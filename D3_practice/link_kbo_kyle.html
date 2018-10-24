@@ -55,7 +55,7 @@
         var previousData = []
         var selectedData = []
         var teams = {}
-        var xScale, yScale, line
+        var line
 
         var margin = {
             top: 20,
@@ -101,7 +101,7 @@
 
             initializeSelector(years)
             initializeTable()
-            initializeLine()
+            initializeLine('year')
         })
 
         function initializeSelector(years) {
@@ -117,7 +117,7 @@
 
             var lineOptions = d3.select('#rate')
                 .attr('class', 'select')
-                //.on('change', lineRedraw)
+                .on('change', lineRedraw)
                 .selectAll('option')
                 .data(['WR', 'DG'])
                 .enter()
@@ -138,7 +138,7 @@
         function tableRedraw() {
             previousData = selectedData
             updateTable()
-            updateLine()
+            updateLine('year')
         }
 
         function updateHeader() {
@@ -256,7 +256,15 @@
                 });
         }
 
-        function initializeLine() {
+        function initializeLine(drawType) {
+            let targetRate = d3.select('div')
+                .select('#rate')
+                .property('value')
+
+            yAxis = targetRate == 'WR' ? [0.15, 0.7] : [50, -15]
+
+            lineCanvas.selectAll("g").remove()
+
             // 5. X scale will use the index of our data
             xScale = d3.scaleLinear()
                 .domain([d3.min(years), d3.max(years)]) // input
@@ -264,8 +272,18 @@
 
             // 6. Y scale will use the randomly generate number 
             yScale = d3.scaleLinear()
-                .domain([0.15, 0.7]) // input 
+                .domain(yAxis) // input 
                 .range([height, 0]); // output 
+
+            // 7. d3's line generator
+            line = d3.line()
+                .defined(function (d) { return d['rate'] !== null; })
+                .x(function (d) {
+                    return xScale(d.year);
+                }) // set the x values for the line generator
+                .y(function (d) {
+                    return yScale(d.rate);
+                }) // set the y values for the line generator 
 
             // 3. Call the x axis in a group tag
             lineCanvas.append("g")
@@ -278,11 +296,14 @@
                 .attr("class", "y axis")
                 .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft                
 
-            updateLine()
+            updateLine(drawType)
         }
 
-        function updateLine() {
-            //lineCanvas.selectAll(".line").remove()
+        function lineRedraw() {
+            initializeLine('rate')
+        }
+
+        function updateLine(drawType) {
 
             let targetRate = d3.select('div')
                 .select('#rate')
@@ -293,34 +314,24 @@
             var dataset = selectedData.map(sd => sd['team']).map(t => years.map(function (y) {
                 return {
                     'year': y,
-                    'rate': d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) > 0 ? d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) : null,
-                    'team': t
+                    'rate': d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) > -999 ? d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) : null,
+                    'team': t,
+                    'type': rate
                 }
             }))
 
-            // 7. d3's line generator
-            line = d3.line()
-                .defined(function (d) { return d['rate'] !== null; })
-                .x(function (d) {
-                    return xScale(d.year);
-                }) // set the x values for the line generator
-                .y(function (d) {
-                    return yScale(d.rate);
-                }) // set the y values for the line generator 
-
             var lines = lineCanvas.selectAll(".line")
                 .data(dataset, function (d) {
-                    return d[0]['team']
+                    return drawType === 'year' ? d[0]['team'] : d[0]['type']
                 })
                 .attr("class", "line")
-
-            lines.transition().duration(2000)
-
-            var newLines = lines.enter().append("path")
+                
+            lines.enter()
+                .append("path")
                 .attr("class", "line")
                 .attr("d", line)
                 .style("opacity", function () {
-                    return previousData.length > 0 ? 0 : 1
+                    return previousData.length > 0 && drawType === 'year' ? 0 : 1
                 })
                 .style("stroke", function (d) {
                     return teams[d[0]['team']]
