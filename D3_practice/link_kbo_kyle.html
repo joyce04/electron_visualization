@@ -8,9 +8,31 @@
     <!-- DATA : KBO data(rank, win, tie, lose, winning rate, winning difference) from 1982 to 2017 except 1999, 2000 -->
     <style>
         text {
-            fill: white;
+            fill: black;
             font: 11px sans-serif;
             text-anchor: middle;
+        }
+
+        rect {
+            fill: white;
+        }
+    </style>
+    <style type="text/css">
+        /* 13. Basic Styling with CSS */
+        /* Style the lines by removing the fill and applying a stroke */
+
+        .line {
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .Samsung {
+            stroke: #ffab00;
+        }
+
+        .overlay {
+            fill: none;
+            pointer-events: all;
         }
     </style>
 </head>
@@ -20,41 +42,51 @@
     <div id='data_manage'>
         <h1>KBO Ranking</h1>
         <select id='year' name='year'></select>
+        <select id='rate' name='rate'></select>
     </div>
     <svg id="table_container"></svg>
-    <svg id="line_chart" width="50%" , height="400"></svg>
-    <svg id="bar_chart" width="50%" , height="400"></svg>
+    <svg id="line_chart"></svg>
+    <svg id="bar_chart"></svg>
     <script type="text/javascript">
         var years = []
         var databyyear = {}
-        let headers = ['rank', 'team', 'W', 'D', 'L', 'games', 'win_rate', 'diff_game']
+        let headers = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']
+        let colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
         var previousData = []
         var selectedData = []
+        var teams = {}
+        var xScale, yScale, line
 
         var margin = {
-                top: 20,
-                right: 30,
-                bottom: 30,
-                left: 40
-            },
-            width = 960 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            top: 20,
+            right: 30,
+            bottom: 30,
+            left: 40
+        },
+            width = 500 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
 
-        var canvas = d3.select("#table_container")
+        var tableCanvas = d3.select("#table_container")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var headerGrp = canvas.append("g").attr("class", "headerGrp");
-        var rowsGrp = canvas.append("g").attr("class", "rowsGrp");
+        var lineCanvas = d3.select("#line_chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        var fieldHeight = 30;
-        var fieldWidth = 90;
+        var headerGrp = tableCanvas.append("g").attr("class", "headerGrp");
+        var rowsGrp = tableCanvas.append("g").attr("class", "rowsGrp");
+
+        var fieldHeight = 20;
+        var fieldWidth = 60;
 
         var previousSort = null;
 
-        d3.json('data.json').then(function(data) {
+        d3.json('data.json').then(function (data) {
             // data is inserted in json format
             // must convert from string
             data.forEach((v) => {
@@ -62,18 +94,34 @@
                 databyyear[v['year']] = v['rankings']
             })
 
+            years.map(function (y) {
+                return databyyear[y].forEach(d => teams[d['team']] = '#0000000')
+            })
+            d3.keys(teams).forEach((k, i) => teams[k] = colors[i])
+
             initializeSelector(years)
             initializeTable()
+            initializeLine()
         })
 
         function initializeSelector(years) {
-            var options = d3.select('#year')
+            var yearOptions = d3.select('#year')
                 .attr('class', 'select')
-                .on('change', redraw)
+                .on('change', tableRedraw)
                 .selectAll('option')
                 .data(years)
                 .enter()
-                .append('option').text(function(d) {
+                .append('option').text(function (d) {
+                    return d;
+                });
+
+            var lineOptions = d3.select('#rate')
+                .attr('class', 'select')
+                //.on('change', lineRedraw)
+                .selectAll('option')
+                .data(['WR', 'DG'])
+                .enter()
+                .append('option').text(function (d) {
                     return d;
                 });
         }
@@ -87,9 +135,10 @@
             updateTable()
         }
 
-        function redraw() {
+        function tableRedraw() {
             previousData = selectedData
             updateTable()
+            updateLine()
         }
 
         function updateHeader() {
@@ -98,10 +147,10 @@
                 .data(headers)
                 .enter().append("g")
                 .attr("class", "header")
-                .attr("transform", function(d, i) {
+                .attr("transform", function (d, i) {
                     return "translate(" + i * fieldWidth + ",0)";
                 })
-                .on("click", function(d) {
+                .on("click", function (d) {
                     return updateTable(d);
                 });
 
@@ -126,17 +175,16 @@
 
             // fill the table   
             // select rows
-            var rows = rowsGrp.selectAll("g.row").data(selectedData, function(d) {
-                return [d['rank'], d['team'], d['games'], d['win_rate']]
+            var rows = rowsGrp.selectAll("g.row").data(selectedData, function (d) {
+                return [d['rank'], d['team'], d['win_rate']]
             })
-            console.log(rows)
 
             maxi = previousData.length
 
             // create rows  
             var rowsEnter = rows.enter().append("g")
                 .attr("class", "row")
-                .attr("transform", function(d, i) {
+                .attr("transform", function (d, i) {
                     out = ""
                     if (maxi === 0) {
                         out = "translate(0," + (i + 1) * (fieldHeight + 1) + ")";
@@ -153,7 +201,7 @@
                     } else {
                         return out
                     }
-                }).style("opacity", function(d) {
+                }).style("opacity", function (d) {
                     out = 0.0
                     if (maxi === 0) {
                         out = 1.0
@@ -170,8 +218,7 @@
             rows.exit().remove()
 
             // select cells
-            var cells = rowsEnter.selectAll("g.cell").data(function(d) {
-                console.log(d)
+            var cells = rowsEnter.selectAll("g.cell").data(function (d) {
                 var vals = []
                 headers.forEach((h) => vals.push(d[h]))
                 return vals
@@ -180,7 +227,7 @@
             // create cells
             var cellsEnter = cells.enter().append("g")
                 .attr("class", "cell")
-                .attr("transform", function(d, i) {
+                .attr("transform", function (d, i) {
                     return "translate(" + i * fieldWidth + ",0)";
                 });
 
@@ -198,13 +245,89 @@
 
             // Sort Data and Change Opacity
             rowsGrp.selectAll("g.row").transition().duration(2000)
-                .attr("transform", function(d, i) {
+                .attr("transform", function (d, i) {
                     return "translate(0," + (i + 1) * (fieldHeight + 1) + ")";
                 })
-                .on("end", function() {
+                .on("end", function () {
                     rowsGrp.selectAll("g.row").transition().duration(1000)
                         .style("opacity", 1.0)
+                    lineCanvas.selectAll(".line").transition().duration(1000)
+                        .style("opacity", 1.0)
                 });
+        }
+
+        function initializeLine() {
+            // 5. X scale will use the index of our data
+            xScale = d3.scaleLinear()
+                .domain([d3.min(years), d3.max(years)]) // input
+                .range([0, width]); // output
+
+            // 6. Y scale will use the randomly generate number 
+            yScale = d3.scaleLinear()
+                .domain([0.15, 0.7]) // input 
+                .range([height, 0]); // output 
+
+            // 3. Call the x axis in a group tag
+            lineCanvas.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
+
+            // 4. Call the y axis in a group tag
+            lineCanvas.append("g")
+                .attr("class", "y axis")
+                .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft                
+
+            updateLine()
+        }
+
+        function updateLine() {
+            //lineCanvas.selectAll(".line").remove()
+
+            let targetRate = d3.select('div')
+                .select('#rate')
+                .property('value')
+
+            let rate = targetRate === 'WR' ? 'win_rate' : 'diff_game'
+
+            var dataset = selectedData.map(sd => sd['team']).map(t => years.map(function (y) {
+                return {
+                    'year': y,
+                    'rate': d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) > 0 ? d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) : null,
+                    'team': t
+                }
+            }))
+
+            // 7. d3's line generator
+            line = d3.line()
+                .defined(function (d) { return d['rate'] !== null; })
+                .x(function (d) {
+                    return xScale(d.year);
+                }) // set the x values for the line generator
+                .y(function (d) {
+                    return yScale(d.rate);
+                }) // set the y values for the line generator 
+
+            var lines = lineCanvas.selectAll(".line")
+                .data(dataset, function (d) {
+                    return d[0]['team']
+                })
+                .attr("class", "line")
+
+            lines.transition().duration(2000)
+
+            var newLines = lines.enter().append("path")
+                .attr("class", "line")
+                .attr("d", line)
+                .style("opacity", function () {
+                    return previousData.length > 0 ? 0 : 1
+                })
+                .style("stroke", function (d) {
+                    return teams[d[0]['team']]
+                })
+
+            lines.exit().remove();
+
         }
     </script>
 </body>
