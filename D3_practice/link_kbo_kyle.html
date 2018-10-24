@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title>2018-28420 Visualization Assignment 02: KBO data</title>
+    <title></title>
     <!-- DATA : KBO data(rank, win, tie, lose, winning rate, winning difference) from 1982 to 2017 except 1999, 2000 -->
     <style>
         text {
@@ -154,7 +154,7 @@
         }
 
         function updateHeader() {
-            // create the table header  
+            // create the table header
             var header = headerGrp.selectAll("g")
                 .data(headers)
                 .enter().append("g")
@@ -185,7 +185,7 @@
 
             selectedData = databyyear[selectedYear]
 
-            // fill the table   
+            // fill the table
             // select rows
             var rows = rowsGrp.selectAll("g.row").data(selectedData, function (d) {
                 return [d['rank'], d['team'], d['win_rate']]
@@ -193,7 +193,7 @@
 
             maxi = previousData.length
 
-            // create rows  
+            // create rows
             var rowsEnter = rows.enter().append("g")
                 .attr("class", "row")
                 .attr("transform", function (d, i) {
@@ -285,7 +285,7 @@
                         .style("opacity", 1.0)
                     barCanvas.selectAll(".bar").transition().duration(1000)
                         .style("opacity", 1.0)
-                    
+
                 });
         }
 
@@ -313,10 +313,10 @@
                 .domain([d3.min(years), d3.max(years)]) // input
                 .range([0, width]); // output
 
-            // 6. Y scale will use the randomly generate number 
+            // 6. Y scale will use the randomly generate number
             yScale = d3.scaleLinear()
-                .domain(yAxis) // input 
-                .range([height, 0]); // output 
+                .domain(yAxis) // input
+                .range([height, 0]); // output
 
             // 7. d3's line generator
             line = d3.line()
@@ -326,7 +326,7 @@
                 }) // set the x values for the line generator
                 .y(function (d) {
                     return yScale(d.rate);
-                }) // set the y values for the line generator 
+                }) // set the y values for the line generator
 
             // 3. Call the x axis in a group tag
             lineCanvas.append("g")
@@ -337,7 +337,7 @@
             // 4. Call the y axis in a group tag
             lineCanvas.append("g")
                 .attr("class", "y axis")
-                .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft                
+                .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
 
             var lines = lineCanvas.selectAll(".line")
                 .data(dataset, function (d) {
@@ -357,7 +357,7 @@
                 })
                 .style("stroke-width", 1.5)
                 .style("fill", "none")
-                
+
             var mergedlines = enteredLines
                 .merge(lines)
                 .transition().duration(1000)
@@ -470,9 +470,9 @@
             selectedTeamBar = barCanvas.selectAll(".bar")._groups[0][i]
             selectedTeam = d3.select(selectedTeamBar).attr("class").split(" ")[0]
 
-            d3.select(selectedTeamLine).style("stroke-width", 5)                        
+            d3.select(selectedTeamLine).style("stroke-width", 5)
             d3.select(selectedTeamBar).style("fill", darkerColor(teams[selectedTeam]))
-            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7 
+            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7
             d3.range(0, dataLength).forEach(ti => {
                 if (tableCanvas.selectAll(".cell").selectAll("text")._groups[ti*7+1][0].__data__ == selectedTeam) {
                     d3.range(ti*7, ti*7+7).forEach(idx => {
@@ -489,7 +489,7 @@
 
             d3.select(selectedTeamLine).style("stroke-width", 1.5)
             d3.select(selectedTeamBar).style("fill", teams[selectedTeam])
-            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7 
+            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7
             d3.range(0, dataLength).forEach(ti => {
                 if (tableCanvas.selectAll(".cell").selectAll("text")._groups[ti*7+1][0].__data__ == selectedTeam) {
                     d3.range(ti*7, ti*7+7).forEach(idx => {
@@ -497,10 +497,10 @@
                     })
                 }
             })
-        }        
+        }
 
         function darkerColor(originColor) {
-            return d3.range(1,4).map(i => parseInt(originColor.slice((2*i-1), (2*i+1)), 16) + 20).map(c => c > 255 ? 255 : c).map(c => c.toString(16)).join("")          
+            return d3.range(1,4).map(i => parseInt(originColor.slice((2*i-1), (2*i+1)), 16) + 20).map(c => c > 255 ? 255 : c).map(c => c.toString(16)).join("")
         }
     </script>
 </body>
