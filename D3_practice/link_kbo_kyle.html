@@ -65,7 +65,6 @@
         var previousData = []
         var selectedData = []
         var teams = {}
-        var line
 
         var margin = {
             top: 20,
@@ -117,7 +116,7 @@
 
             initializeSelector(years)
             initializeTable()
-            initializeLine('year')
+            initializeLine()
             initializeBar()
         })
 
@@ -134,7 +133,7 @@
 
             var lineOptions = d3.select('#rate')
                 .attr('class', 'select')
-                .on('change', lineRedraw)
+                .on('change', initializeLine)
                 .selectAll('option')
                 .data(['WR', 'DG'])
                 .enter()
@@ -165,7 +164,7 @@
         function tableRedraw() {
             previousData = selectedData
             updateTable()
-            updateLine('year')
+            initializeLine()
             initializeBar()
         }
 
@@ -272,7 +271,7 @@
             // Finish Update and Remove data
 
             // Sort Data and Change Opacity
-            rowsGrp.selectAll("g.row").transition().duration(2000)
+            rowsGrp.selectAll("g.row").transition().duration(1000)
                 .attr("transform", function (d, i) {
                     return "translate(0," + (i + 1) * (fieldHeight + 1) + ")";
                 })
@@ -287,12 +286,22 @@
                 });
         }
 
-        function initializeLine(drawType) {
+        function initializeLine() {
             let targetRate = d3.select('div')
                 .select('#rate')
                 .property('value')
 
-            yAxis = targetRate == 'WR' ? [0.15, 0.7] : [50, -15]
+            let yAxis = targetRate == 'WR' ? [0.15, 0.7] : [50, -15]
+            let rate = targetRate === 'WR' ? 'win_rate' : 'diff_game'
+
+            var dataset = selectedData.map(sd => sd['team']).map(t => years.map(function (y) {
+                return {
+                    'year': y,
+                    'rate': d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) > -999 ? d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) : null,
+                    'team': t,
+                    'type': rate
+                }
+            }))
 
             lineCanvas.selectAll("g").remove()
 
@@ -327,42 +336,16 @@
                 .attr("class", "y axis")
                 .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft                
 
-            updateLine(drawType)
-        }
-
-        function lineRedraw() {
-            initializeLine('rate')
-        }
-
-        function updateLine(drawType) {
-
-            let targetRate = d3.select('div')
-                .select('#rate')
-                .property('value')
-
-            let rate = targetRate === 'WR' ? 'win_rate' : 'diff_game'
-
-            var dataset = selectedData.map(sd => sd['team']).map(t => years.map(function (y) {
-                return {
-                    'year': y,
-                    'rate': d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) > -999 ? d3.max(databyyear[y].map(d => d['team'] === t ? d[rate] : -999)) : null,
-                    'team': t,
-                    'type': rate
-                }
-            }))
-
             var lines = lineCanvas.selectAll(".line")
                 .data(dataset, function (d) {
                     return d[0]['team']
                 })
 
-            console.log(lines)
-
             var enteredLines = lines.enter().append("path")
                 .attr("class", "line")
                 .attr("d", line)
                 .style("opacity", function () {
-                    return previousData.length > 0 && drawType === 'year' ? 0 : 1
+                    return previousData.length > 0 ? 0 : 1
                 })
                 .style("stroke", function (d) {
                     return teams[d[0]['team']]
@@ -370,18 +353,14 @@
 
             var mergedlines = enteredLines
                 .merge(lines)
-                .transition().duration(2000)
+                .transition().duration(1000)
                 .attr("class", "line")
                 .attr("d", line)
-                .style("opacity", function () {
-                    return previousData.length > 0 && drawType === 'year' ? 0 : 1
-                })
                 .style("stroke", function (d) {
                     return teams[d[0]['team']]
                 })
 
             lines.exit().remove();
-
         }
 
         function initializeBar() {
@@ -420,8 +399,6 @@
                     return d['team']
                 })
 
-            console.log(bars)
-
             enteredBars = bars.enter().append("rect")
                 .attr("class", "bar")
                 .attr("x", function (d) {
@@ -454,7 +431,7 @@
 
             var mergedBars = enteredBars
                 .merge(bars)
-                .transition().duration(2000)
+                .transition().duration(1000)
                 .attr("x", function (d) {
                     return x(d.team);
                 })
