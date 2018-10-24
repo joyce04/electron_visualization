@@ -22,20 +22,20 @@
     <select id='year' name='year'></select>
   </div>
   <svg id="table_container"></svg>
-  <svg id="line_chart" width="50%", height="400"></svg>
-  <svg id="bar_chart" width="50%", height="400"></svg>
+  <svg id="line_chart" width="400", height="300"></svg>
+  <svg id="bar_chart" width="400", height="300"></svg>
   <script type="text/javascript">
     // python3 -m http.server
 
     let margin = 15
-    let emptySpace = '\u00A0\u00A0'
     let tableWidth = 400
-    let tableHeight = 400
+    let tableHeight = 300
     let columns = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']
     // 1. load json
     // 2. add options data to selectors (year)
     let load = ()=>{
-      let loaded_data = {}
+      let loadedData = {}
+      let uniqueTeams = new Set()
 
       d3.json('data.json').then(function(data){
         // data is inserted in json format
@@ -44,23 +44,32 @@
         console.log(Object.values(data))
 
         data.forEach((v)=> {
-          loaded_data[v['year']]=v['rankings']
+          loadedData[v['year']]=v['rankings']
+          v['rankings'].map(d=>d['team']).forEach(d=>{
+              uniqueTeams.add(d)
+          })
         })
-        addYearSelector(loaded_data)
-        initializeTableHeader()
-        initializeTableRows(loaded_data)
-      })
-      return loaded_data
-    }
-    const loaded_data = load()
+        addYearSelector(loadedData)
+        let selectedYear = d3.select('div')
+                              .select('#year')
+                              .property('value')
+        let tableData = loadedData[selectedYear].sort((a, b)=> a.rank-b.rank)
 
-    function addYearSelector(loaded_data){
+        initializeTableHeader()
+        initializeTableRows(tableData)
+        initializeLineChart(loadedData, tableData, uniqueTeams)
+      })
+      return loadedData
+    }
+    const loadedData = load()
+
+    function addYearSelector(loadedData){
       //insert year data
       let yearOptions = d3.select('#year')
                             .attr('class', 'select')
                             .on('change', redraw)
                             .selectAll('option')
-                            .data(Object.keys(loaded_data))
+                            .data(Object.keys(loadedData))
                             .enter()
                             .append('option')
       yearOptions.text((d)=> d)
@@ -89,19 +98,14 @@
             .text(d=>d)
     }
 
-    function initializeTableRows(loaded_data){
-      let selectedYear = d3.select('div')
-                            .select('#year')
-                            .property('value')
-
-      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
-      console.log(table_data)
+    function initializeTableRows(tableData){
+      console.log(tableData)
       let rows = d3.select('#table')
                     .append('g')
                     .attr('transform', (d,i)=> 'translate(0,20)')
                     .attr('class', 'rows')
                     .selectAll('g')
-                    .data(table_data, get_key)
+                    .data(tableData, get_key)
 
       let texts = rows.enter()
           .append('text')
@@ -120,51 +124,63 @@
     }
 
     let get_key = function(d) {
-      console.log(d)
+      // console.log(d)
       return d['team']
     }
 
-    function update_table(selected_data){
+    function update_table(selectedData){
       let rows = d3.select('.rows').selectAll('text')
-      // let origin_data = d3.select('.rows').selectAll('text').each(d=>d['team'])
-      // console.log(origin_data)
-      let update_rows = rows.data(selected_data, get_key)
+      let updateRows = rows.data(selectedData, get_key)
+      let exit_rows = updateRows.exit()
 
-      let exit_rows = update_rows.exit()
-
+      // fade exit rows with transition
       exit_rows.transition()
-              .duration(500)
+              .duration(700)
               .style('opacity', 0)
-      //        .remove()
+              .remove()
 
-      update_rows.transition()
-                .delay(400)
-                .duration(500)
-                .attr('y', (d,k)=> k*20)
-      // update_rows.selectAll('text')
-      //             .data((k) => columns.map(each_key => k[each_key]))
-      // update_rows.selectAll('text').selectAll('tspan')
-                  // .text((d) => d)
-      let enter_rows = update_rows.enter()
+      // separate newly inserted rows
+      let enterRows = updateRows.enter()
                                   .append('text')
+      enterRows.transition()
+              .duration(0)
+              .style('opacity', 0)
 
-      enter_rows.attr('y', (d,k)=> k*20)
-                .attr('class', 'row')
-                .style('width', '100%')
-                .selectAll('text')
-                .data((k) => columns.map(each_key => k[each_key]))
-      let t_rows = update_rows.merge(enter_rows)
-      let update_text = update_rows.selectAll('tspan')
-      let enter_text  = enter_rows.enter()
-                                  .append('tspan')
-                                  .attr('x', (d,k)=> k*(tableWidth/columns.length))
+      // relocate updated rows adjusted to the new rank
+      updateRows.transition()
+                .delay(700)
+                .duration(700)
+                .attr('y', (d,k)=> k*20)
+
+      let changedRows = updateRows.data(selectedData, function(k){
+                      return columns.map(each_key => k[each_key])})
+
+      let updateText = changedRows.selectAll('tspan')
+
+      let enterTexts = enterRows.merge(enterRows)
+                                  .attr('y', (d,k)=> k*20)
+                                  .attr('class', 'row')
                                   .style('width', '100%')
-                                  .merge(update_text)
-                                  .text((d) => d)
+                                  .selectAll('text')
+                                  .data((k) => columns.map(each_key => k[each_key]))
 
-      let texts = update_text.merge(enter_text)
-      texts.data((k) => columns.map(each_key => k[each_key]))
-      // // trs.exit().remove()
+      enterTexts.enter()
+          .append('tspan')
+          .attr('x', (d,k)=> k*(tableWidth/columns.length))
+          .style('width', '100%')
+          .text((d) => d)
+
+      let texts = updateText.data((k) => columns.map(each_key => k[each_key]))
+      changedRows.selectAll('tspan')
+                .transition()
+                .delay(700)
+                .duration(700)
+                .text(d=>d)
+
+      enterRows.transition()
+              .delay(1000)
+              .duration(900)
+              .style('opacity', 1)
     }
 
     function redraw(){
@@ -172,12 +188,117 @@
                             .select('#year')
                             .property('value')
 
-      let table_data = loaded_data[selectedYear].sort((a, b)=> a.rank-b.rank)
-      console.log(selectedYear)
-      console.log(table_data)
-
-      update_table(table_data)
+      let tableData = loadedData[selectedYear].sort((a, b)=> a.rank-b.rank)
+      update_table(tableData)
     }
+
+    function initializeLineChart(loadedData, tableData, uniqueTeams){
+      // data
+      win_rate = {}
+      tableData.map(d=>d['team']).forEach(team=>{
+        let yearRecord = []
+        console.log(team)
+
+        d3.keys(loadedData).forEach(k=>{
+          if (loadedData[k].map(y=>y['team']).indexOf(team)>=0){
+              yearRecord.push({'year':k,
+                                'win_rate':-1,
+                                'team': team})
+          }else{
+            if (loadedData[k].filter(y=> y==team) !== null){
+              yearRecord.push({'year':k,
+                                'win_rate':Number(team['win_rate']),
+                                'team': team})
+            }
+          }
+        })
+        win_rate[team] = yearRecord
+      })
+
+      let teamByYear = tableData.map((d)=>d['team']).map((t)=>win_rate[t])
+
+      // line charts
+      let xScale = d3.scaleLinear()
+                      .domain([d3.min(d3.keys(loadedData)), d3.max(d3.keys(loadedData))])
+                      .range([40, 400-15])
+
+      let yScale = d3.scaleLinear()
+                    .domain([d3.min(tableData.map(d=>d['win_rate'])), d3.max(tableData.map(d=>d['win_rate']))]).nice()
+                    .range([300-30, 15]);
+
+      let xAxis = (g)=>g.attr('transform', 'translate(0, 270)')
+                        .call(d3.axisBottom(xScale).tickFormat((d,i)=> ''+d))
+
+      let yAxis = (g)=>g.attr('transform', 'translate(40, 0)')
+                        .call(d3.axisLeft(yScale))
+                        // .call(g=> g.select('.domain').remove())
+                        // .call(g=> g.select('.tick:last-of-type text').clone())
+                        // .attr('x', 3)
+                        .attr('text-anchor', 'start')
+
+      let lineChart = d3.select('#line_chart')
+      lineChart.append("g")
+                .call(xAxis)
+      lineChart.append("g")
+                .call(yAxis)
+      lineChart.append("text")
+              .attr("x", -(300 / 2) - 15)
+              .attr("y", 15)
+              .attr("transform", "rotate(-90)")
+              .attr("text-anchor", "middle")
+              .text("win-rate");
+      lineChart.append("text")
+              .attr("x", 400 / 2 + 15 + 2*15)
+              .attr("y", 300)
+              .attr("text-anchor", "middle")
+              .text("Year");
+
+      let lines = lineChart.selectAll('.line')
+                          .data([teamByYear], (d)=>d)
+
+      let line = d3.line()
+                    .defined(function(d, k){
+                      // console.log('******')
+                      console.log(d)
+                      // console.log(k)
+                      return d.value !== null
+                    })
+                    .x(function(d){
+                      console.log(d)
+                      return xScale(d.year)
+                    })
+                    .y((d)=> yScale(d.win_rate))
+
+      let addedLines = lines.enter()
+                            .append('path')
+                            .attr('id', (d,i)=>i)
+                            .attr('d', line)
+                            .attr('fill', 'none')
+                            .attr('stroke', 'blue')
+                            .attr('stroke-width', 1.5)
+                            .attr('stroke-linejoin', 'round')
+                            // .selectAll('path')
+                            // .data(teamByYear)
+      addedLines.merge(lines)
+                .transition()
+                .duration(1000)
+                .attr('d', line)
+                .style('stroke', 'blue')
+      lines.exit().remove()
+
+
+
+
+
+
+
+      // let line = d3.line()
+      //               .x(function(d, i) { return xScale(i); })
+      //               .y(function(d) { return yScale(d.Samsung); })
+      //               .curve(d3.curveMonotoneX)
+      // let dataSet = tableData[]
+
+  }
 
   </script>
 </body>
