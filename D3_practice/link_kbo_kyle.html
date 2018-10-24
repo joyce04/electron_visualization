@@ -24,24 +24,9 @@
     <style type="text/css">
         /* 13. Basic Styling with CSS */
         /* Style the lines by removing the fill and applying a stroke */
-
-        .line {
-            fill: none;
-            stroke-width: 1.5;
-        }
-
-        .Samsung {
-            stroke: #ffab00;
-        }
-
         .overlay {
             fill: none;
             pointer-events: all;
-        }
-    </style>
-    <style>
-        .bar:hover {
-          fill: brown;
         }
     </style>
 </head>
@@ -61,7 +46,7 @@
         var years = []
         var databyyear = {}
         let headers = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']
-        let colors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
+        let colors = ["#2356bc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
         var previousData = []
         var selectedData = []
         var teams = {}
@@ -240,7 +225,25 @@
                         })
                     }
                     return out
-                });
+                }).on("mouseover", function(d, i) {
+                    d3.select(this).selectAll(".cell").selectAll("text").style("font-weight", "bold")
+                    d3.selectAll("." + d.team)._groups[0].forEach(g => {
+                        if (d3.select(g).attr("class").split(" ")[1] === "line") {
+                            d3.select(g).style("stroke-width", 5)
+                        } else {
+                            d3.select(g).style("fill", darkerColor(teams[d.team]))
+                        }
+                    })
+                }).on("mouseout", function(d, i) {
+                    d3.select(this).selectAll(".cell").selectAll("text").style("font-weight", "")
+                    d3.selectAll("." + d.team)._groups[0].forEach(g => {
+                        if (d3.select(g).attr("class").split(" ")[1] === "line") {
+                            d3.select(g).style("stroke-width", 1)
+                        } else {
+                            d3.select(g).style("fill", teams[d.team])
+                        }
+                    })
+                })
 
             rows.exit().remove()
 
@@ -342,7 +345,9 @@
                 })
 
             var enteredLines = lines.enter().append("path")
-                .attr("class", "line")
+                .attr("class", function(d) {
+                    return d[0]['team'] + " line"
+                })
                 .attr("d", line)
                 .style("opacity", function () {
                     return previousData.length > 0 ? 0 : 1
@@ -350,17 +355,22 @@
                 .style("stroke", function (d) {
                     return teams[d[0]['team']]
                 })
-
+                .style("stroke-width", 1.5)
+                .style("fill", "none")
+                
             var mergedlines = enteredLines
                 .merge(lines)
                 .transition().duration(1000)
-                .attr("class", "line")
                 .attr("d", line)
                 .style("stroke", function (d) {
                     return teams[d[0]['team']]
                 })
 
             lines.exit().remove();
+
+            lineCanvas.selectAll(".line")
+                .on("mouseover", handleMouseOver)
+                .on("mouseout", handleMouseOut);
         }
 
         function initializeBar() {
@@ -400,7 +410,9 @@
                 })
 
             enteredBars = bars.enter().append("rect")
-                .attr("class", "bar")
+                .attr("class", function(d) {
+                    return d.team + " bar"
+                })
                 .attr("x", function (d) {
                     return x(d.team);
                 })
@@ -446,8 +458,49 @@
                     return teams[d.team]
                 })
 
-
             bars.exit().remove();
+
+            barCanvas.selectAll(".bar")
+                .on("mouseover", handleMouseOver)
+                .on("mouseout", handleMouseOut);
+        }
+
+        function handleMouseOver(d, i) {
+            selectedTeamLine = lineCanvas.selectAll(".line")._groups[0][i]
+            selectedTeamBar = barCanvas.selectAll(".bar")._groups[0][i]
+            selectedTeam = d3.select(selectedTeamBar).attr("class").split(" ")[0]
+
+            d3.select(selectedTeamLine).style("stroke-width", 5)                        
+            d3.select(selectedTeamBar).style("fill", darkerColor(teams[selectedTeam]))
+            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7 
+            d3.range(0, dataLength).forEach(ti => {
+                if (tableCanvas.selectAll(".cell").selectAll("text")._groups[ti*7+1][0].__data__ == selectedTeam) {
+                    d3.range(ti*7, ti*7+7).forEach(idx => {
+                        d3.select(tableCanvas.selectAll(".cell").selectAll("text")._groups[idx][0]).style("font-weight", "bold")
+                    })
+                }
+            })
+        }
+
+        function handleMouseOut(d, i) {
+            selectedTeamLine = lineCanvas.selectAll(".line")._groups[0][i]
+            selectedTeamBar = barCanvas.selectAll(".bar")._groups[0][i]
+            selectedTeam = d3.select(selectedTeamBar).attr("class").split(" ")[0]
+
+            d3.select(selectedTeamLine).style("stroke-width", 1.5)
+            d3.select(selectedTeamBar).style("fill", teams[selectedTeam])
+            dataLength = tableCanvas.selectAll(".cell").selectAll("text")._groups.length / 7 
+            d3.range(0, dataLength).forEach(ti => {
+                if (tableCanvas.selectAll(".cell").selectAll("text")._groups[ti*7+1][0].__data__ == selectedTeam) {
+                    d3.range(ti*7, ti*7+7).forEach(idx => {
+                        d3.select(tableCanvas.selectAll(".cell").selectAll("text")._groups[idx][0]).style("font-weight", "")
+                    })
+                }
+            })
+        }        
+
+        function darkerColor(originColor) {
+            return d3.range(1,4).map(i => parseInt(originColor.slice((2*i-1), (2*i+1)), 16) + 20).map(c => c > 255 ? 255 : c).map(c => c.toString(16)).join("")          
         }
     </script>
 </body>
