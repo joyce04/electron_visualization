@@ -13,7 +13,11 @@
             text-anchor: middle;
         }
 
-        rect {
+        .cell rect {
+            fill: white;
+        }
+
+        .header rect {
             fill: white;
         }
     </style>
@@ -35,6 +39,11 @@
             pointer-events: all;
         }
     </style>
+    <style>
+        .bar:hover {
+          fill: brown;
+        }
+    </style>
 </head>
 
 <body>
@@ -43,6 +52,7 @@
         <h1>KBO Ranking</h1>
         <select id='year' name='year'></select>
         <select id='rate' name='rate'></select>
+        <select id='result' name='result'></select>
     </div>
     <svg id="table_container"></svg>
     <svg id="line_chart"></svg>
@@ -78,6 +88,12 @@
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        var barCanvas = d3.select("#bar_chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
         var headerGrp = tableCanvas.append("g").attr("class", "headerGrp");
         var rowsGrp = tableCanvas.append("g").attr("class", "rowsGrp");
 
@@ -102,6 +118,7 @@
             initializeSelector(years)
             initializeTable()
             initializeLine('year')
+            initializeBar()
         })
 
         function initializeSelector(years) {
@@ -124,6 +141,16 @@
                 .append('option').text(function (d) {
                     return d;
                 });
+
+            var barOptions = d3.select('#result')
+                .attr('class', 'select')
+                .on('change', initializeBar)
+                .selectAll('option')
+                .data(['W', 'D', 'L'])
+                .enter()
+                .append('option').text(function (d) {
+                    return d;
+                });
         }
 
         function initializeTable() {
@@ -139,6 +166,7 @@
             previousData = selectedData
             updateTable()
             updateLine('year')
+            initializeBar()
         }
 
         function updateHeader() {
@@ -253,6 +281,9 @@
                         .style("opacity", 1.0)
                     lineCanvas.selectAll(".line").transition().duration(1000)
                         .style("opacity", 1.0)
+                    barCanvas.selectAll(".bar").transition().duration(1000)
+                        .style("opacity", 1.0)
+                    
                 });
         }
 
@@ -322,12 +353,24 @@
 
             var lines = lineCanvas.selectAll(".line")
                 .data(dataset, function (d) {
-                    return drawType === 'year' ? d[0]['team'] : d[0]['type']
+                    return d[0]['team']
                 })
+
+            console.log(lines)
+
+            var enteredLines = lines.enter().append("path")
                 .attr("class", "line")
-                
-            lines.enter()
-                .append("path")
+                .attr("d", line)
+                .style("opacity", function () {
+                    return previousData.length > 0 && drawType === 'year' ? 0 : 1
+                })
+                .style("stroke", function (d) {
+                    return teams[d[0]['team']]
+                })
+
+            var mergedlines = enteredLines
+                .merge(lines)
+                .transition().duration(2000)
                 .attr("class", "line")
                 .attr("d", line)
                 .style("opacity", function () {
@@ -339,6 +382,95 @@
 
             lines.exit().remove();
 
+        }
+
+        function initializeBar() {
+            let targetResult = d3.select('div')
+                .select('#result')
+                .property('value')
+
+            barCanvas.selectAll("g").remove()
+
+            var x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1);
+
+            var y = d3.scaleBand()
+                .rangeRound([0, height])
+                .padding(0.1);
+
+            x.domain(selectedData.map(d => d['team']))
+            y.domain(selectedData.map(d => Number(d[targetResult])).sort(function(a, b){return a-b}).reverse())
+
+            barCanvas.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
+
+            barCanvas.append("g")
+                .call(d3.axisLeft(y))
+                .append("text")
+                .attr("fill", "#000")
+                .attr("y", 6)
+                .attr("dy", "0.71em")
+                .attr("text-anchor", "end")
+                .text(targetResult);
+
+            var bars = barCanvas.selectAll(".bar")
+                .data(selectedData, function (d) {
+                    return d['team']
+                })
+
+            console.log(bars)
+
+            enteredBars = bars.enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function (d) {
+                    return x(d.team);
+                })
+                .attr("y", function (d) {
+                    return height - y(Number(d[targetResult]));
+                })
+                .attr("width", x.bandwidth())
+                .attr("height", function (d) {
+                    return y(Number(d[targetResult]));
+                })
+                .attr("fill", function(d) {
+                    return teams[d.team]
+                })
+                .attr("opacity", function (d) {
+                    maxi = previousData.length
+                    out = 0.0
+                    if (maxi === 0) {
+                        out = 1.0
+                    } else {
+                        previousData.forEach((pd, j) => {
+                            if (pd['team'] === d['team']) {
+                                out = 1.0
+                            }
+                        })
+                    }
+                    return out
+                })
+
+            var mergedBars = enteredBars
+                .merge(bars)
+                .transition().duration(2000)
+                .attr("x", function (d) {
+                    return x(d.team);
+                })
+                .attr("y", function (d) {
+                    return y(Number(d[targetResult]));
+                })
+                .attr("width", x.bandwidth())
+                .attr("height", function (d) {
+                    return height - y(Number(d[targetResult]));
+                })
+                .attr("fill", function(d) {
+                    return teams[d.team]
+                })
+
+
+            bars.exit().remove();
         }
     </script>
 </body>
