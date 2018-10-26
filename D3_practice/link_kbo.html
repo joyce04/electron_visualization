@@ -18,8 +18,8 @@
   <div id='data_manage'>
     <h1>KBO Ranking</h1>
     <select id='year' name='year'></select>
-    <select id='year' name='year'></select>
-    <select id='year' name='year'></select>
+    <select id='rate' name='rate'></select>
+    <select id='bar_rate' name='bar_rate'></select>
   </div>
   <svg id="table_container"></svg>
   <svg id="line_chart" width="400", height="300"></svg>
@@ -57,7 +57,7 @@
         teamColors[t] = colors.pop()
       })
 
-      addYearSelector(totalData)
+      addSelectors()
       let selectedYear = d3.select('div')
                             .select('#year')
                             .property('value')
@@ -65,20 +65,40 @@
 
       initializeTableHeader()
       initializeTableRows(tableData)
-      initializeLineChart(totalData, tableData, teamColors)
-  })
+      initializeLineChart(tableData)
+    })
 
-    function addYearSelector(loadedData){
+    function addSelectors(){
       //insert year data
       let yearOptions = d3.select('#year')
                             .attr('class', 'select')
                             .on('change', redraw)
                             .selectAll('option')
-                            .data(Object.keys(loadedData))
+                            .data(Object.keys(totalData))
                             .enter()
                             .append('option')
       yearOptions.text((d)=> d)
                   .attr('value', (d)=>d)
+
+      let lineOptions = d3.select('#rate')
+          .attr('class', 'select')
+          .on('change', redrawLine)
+          .selectAll('option')
+          .data(['WR', 'DG'])
+          .enter()
+          .append('option').text(function (d) {
+              return d;
+          });
+
+      let barOptions = d3.select('#bar_rate')
+          .attr('class', 'select')
+          // .on('change', initializeLineChart)
+          .selectAll('option')
+          .data(['W', 'D', 'L'])
+          .enter()
+          .append('option').text(function (d) {
+              return d;
+          });
     }
 
     // 3. draw table header
@@ -189,29 +209,41 @@
     }
 
     function redraw(){
+      update_table(findCurrentYearData())
+      //updateLine
+      //updateBar
+    }
+
+    function findCurrentYearData(){
       let selectedYear = d3.select('div')
                             .select('#year')
                             .property('value')
-
-      let tableData = totalData[selectedYear].sort((a, b)=> a.rank-b.rank)
-      update_table(tableData)
+      return totalData[selectedYear].sort((a, b)=> a.rank-b.rank)
     }
 
-    function initializeLineChart(loadedData, tableData, uniqueTeams){
+    function redrawLine(){
+      initializeLineChart(findCurrentYearData(), teamColors)
+    }
+
+    function initializeLineChart(tableData){
+      let targetRate = d3.select('div')
+                        .select('#rate')
+                        .property('value')
+      let targetRateV = targetRate === 'WR' ? 'win_rate' : 'diff_game'
       // data
       win_rate = {}
       tableData.map(d=>d['team']).forEach(team=>{
         let yearRecord = []
 
-        d3.keys(loadedData).forEach(k=>{
-          let teamData = loadedData[k].filter(y=> y['team']==team)
+        d3.keys(totalData).forEach(k=>{
+          let teamData = totalData[k].filter(y=> y['team']==team)
           if (teamData.length==0){
               yearRecord.push({'year':k,
-                                'win_rate':null,//-1,
+                                'rate':null,//-1,
                                 'team': team})
           }else{
             yearRecord.push({'year':k,
-                              'win_rate':Number(teamData[0]['win_rate']),
+                              'rate':Number(teamData[0][targetRateV]),
                               'team': team})
             }
         })
@@ -219,10 +251,10 @@
       })
 
       let teamByYear = tableData.map((d)=>d['team']).map((t)=>win_rate[t])
-
+      console.log(teamByYear)
       // line charts
       let xScale = d3.scaleLinear()
-                      .domain([d3.min(d3.keys(loadedData)), d3.max(d3.keys(loadedData))])
+                      .domain([d3.min(d3.keys(totalData)), d3.max(d3.keys(totalData))])
                       .range([40, 400-15])
 
       let yScale = d3.scaleLinear()
@@ -258,16 +290,16 @@
 
       let line = d3.line()
                     .defined(function(d){
-                      return d.win_rate !== null
+                      return d.rate !== null
                     }).x((d)=> xScale(d.year))
-                      .y((d)=> yScale(d.win_rate))
+                      .y((d)=> yScale(d.rate))
 
       let addedLines = lines.enter()
                             .append('path')
                             .attr('id', (d,i)=>i)
                             .attr('d', line)
                             .attr('fill', 'none')
-                            .attr('stroke', (d)=> uniqueTeams[d[0]['team']])
+                            .attr('stroke', (d)=> teamColors[d[0]['team']])
                             .attr('stroke-width', 1.5)
                             .attr('stroke-linejoin', 'round')
                             // .selectAll('path')
@@ -276,20 +308,9 @@
                 .transition()
                 .duration(1000)
                 .attr('d', line)
-                .style('stroke', (d)=>uniqueTeams[d[0]['team']])
+                .style('stroke', (d)=>teamColors[d[0]['team']])
       lines.exit().remove()
 }
-
-
-
-
-
-
-      // let line = d3.line()
-      //               .x(function(d, i) { return xScale(i); })
-      //               .y(function(d) { return yScale(d.Samsung); })
-      //               .curve(d3.curveMonotoneX)
-      // let dataSet = tableData[]
   </script>
 </body>
 </html>
