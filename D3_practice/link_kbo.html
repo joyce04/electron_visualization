@@ -31,37 +31,42 @@
     let tableWidth = 400
     let tableHeight = 300
     let columns = ['rank', 'team', 'W', 'D', 'L', 'win_rate', 'diff_game']
+    let colors = d3.schemeCategory10
+    colors = colors.concat(d3.schemeSet3)
+    let teamColors = {}
     // 1. load json
     // 2. add options data to selectors (year)
-    let load = ()=>{
-      let loadedData = {}
-      let uniqueTeams = new Set()
+    let totalData = {}
 
-      d3.json('data.json').then(function(data){
-        // data is inserted in json format
-        // must convert from string
-        console.log(data)
-        console.log(Object.values(data))
+    d3.json('data.json').then(function(data){
+      // data is inserted in json format
+      // must convert from string
+      console.log(data)
+      console.log(Object.values(data))
 
-        data.forEach((v)=> {
-          loadedData[v['year']]=v['rankings']
-          v['rankings'].map(d=>d['team']).forEach(d=>{
-              uniqueTeams.add(d)
-          })
+      let uniqueTeams = []
+      data.forEach((v)=>{
+        totalData[v['year']]=v['rankings']
+        v['rankings'].map(d=>d['team']).forEach(d=>{
+          if (uniqueTeams.indexOf(d)<0){
+            uniqueTeams.push(d)
+          }
         })
-        addYearSelector(loadedData)
-        let selectedYear = d3.select('div')
-                              .select('#year')
-                              .property('value')
-        let tableData = loadedData[selectedYear].sort((a, b)=> a.rank-b.rank)
-
-        initializeTableHeader()
-        initializeTableRows(tableData)
-        initializeLineChart(loadedData, tableData, uniqueTeams)
       })
-      return loadedData
-    }
-    const loadedData = load()
+      uniqueTeams.forEach((t)=> {
+        teamColors[t] = colors.pop()
+      })
+
+      addYearSelector(totalData)
+      let selectedYear = d3.select('div')
+                            .select('#year')
+                            .property('value')
+      let tableData = totalData[selectedYear].sort((a, b)=> a.rank-b.rank)
+
+      initializeTableHeader()
+      initializeTableRows(tableData)
+      initializeLineChart(totalData, tableData, teamColors)
+  })
 
     function addYearSelector(loadedData){
       //insert year data
@@ -188,7 +193,7 @@
                             .select('#year')
                             .property('value')
 
-      let tableData = loadedData[selectedYear].sort((a, b)=> a.rank-b.rank)
+      let tableData = totalData[selectedYear].sort((a, b)=> a.rank-b.rank)
       update_table(tableData)
     }
 
@@ -197,20 +202,18 @@
       win_rate = {}
       tableData.map(d=>d['team']).forEach(team=>{
         let yearRecord = []
-        console.log(team)
 
         d3.keys(loadedData).forEach(k=>{
-          if (loadedData[k].map(y=>y['team']).indexOf(team)>=0){
+          let teamData = loadedData[k].filter(y=> y['team']==team)
+          if (teamData.length==0){
               yearRecord.push({'year':k,
-                                'win_rate':-1,
+                                'win_rate':null,//-1,
                                 'team': team})
           }else{
-            if (loadedData[k].filter(y=> y==team) !== null){
-              yearRecord.push({'year':k,
-                                'win_rate':Number(team['win_rate']),
-                                'team': team})
+            yearRecord.push({'year':k,
+                              'win_rate':Number(teamData[0]['win_rate']),
+                              'team': team})
             }
-          }
         })
         win_rate[team] = yearRecord
       })
@@ -231,9 +234,6 @@
 
       let yAxis = (g)=>g.attr('transform', 'translate(40, 0)')
                         .call(d3.axisLeft(yScale))
-                        // .call(g=> g.select('.domain').remove())
-                        // .call(g=> g.select('.tick:last-of-type text').clone())
-                        // .attr('x', 3)
                         .attr('text-anchor', 'start')
 
       let lineChart = d3.select('#line_chart')
@@ -254,27 +254,20 @@
               .text("Year");
 
       let lines = lineChart.selectAll('.line')
-                          .data([teamByYear], (d)=>d)
+                          .data(teamByYear, (d)=>d)
 
       let line = d3.line()
-                    .defined(function(d, k){
-                      // console.log('******')
-                      console.log(d)
-                      // console.log(k)
-                      return d.value !== null
-                    })
-                    .x(function(d){
-                      console.log(d)
-                      return xScale(d.year)
-                    })
-                    .y((d)=> yScale(d.win_rate))
+                    .defined(function(d){
+                      return d.win_rate !== null
+                    }).x((d)=> xScale(d.year))
+                      .y((d)=> yScale(d.win_rate))
 
       let addedLines = lines.enter()
                             .append('path')
                             .attr('id', (d,i)=>i)
                             .attr('d', line)
                             .attr('fill', 'none')
-                            .attr('stroke', 'blue')
+                            .attr('stroke', (d)=> uniqueTeams[d[0]['team']])
                             .attr('stroke-width', 1.5)
                             .attr('stroke-linejoin', 'round')
                             // .selectAll('path')
@@ -283,9 +276,9 @@
                 .transition()
                 .duration(1000)
                 .attr('d', line)
-                .style('stroke', 'blue')
+                .style('stroke', (d)=>uniqueTeams[d[0]['team']])
       lines.exit().remove()
-
+}
 
 
 
@@ -297,9 +290,6 @@
       //               .y(function(d) { return yScale(d.Samsung); })
       //               .curve(d3.curveMonotoneX)
       // let dataSet = tableData[]
-
-  }
-
   </script>
 </body>
 </html>
