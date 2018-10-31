@@ -11,11 +11,9 @@
       font: 11px sans-serif;
       text-anchor: middle;
     }
-
     .cell rect {
       fill: white;
     }
-
     .header rect {
       fill: white;
     }
@@ -47,11 +45,11 @@
       bottom: 30,
       left: 40
     },
-      width = 500 - margin.left - margin.right,
-      height = 300 - margin.top - margin.bottom,
-      fieldHeight = 20,
-      fieldWidth = 60,
-      transDuration = 1000
+    width = 500 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom,
+    fieldHeight = 20,
+    fieldWidth = 60,
+    transDuration = 1000
 
     var tableCanvas = d3.select("#table_container")
                         .attr("width", width + margin.left + margin.right)
@@ -136,15 +134,15 @@
                             .property('value')
       selectedData = databyyear[selectedYear]
       // console.log(selectedData)
-      var rows = rowsGrp.selectAll("g.row")
+      let rows = rowsGrp.selectAll("g.row")
                         .data(selectedData, d => d['team'])
 
-      var enteredRows = rows.enter().append("g")
+      let enteredRows = rows.enter().append("g")
                                     .attr("class", "row")
                                     .attr("transform", (d, i) => "translate(0," + (Number(d['rank']) - 1 + 1) * (fieldHeight + 1) + ")")
                                     .style("opacity", firstTime === 1 ? 1 : 0)
 
-      var mergedRows = enteredRows.merge(rows)
+      let mergedRows = enteredRows.merge(rows)
                                   .transition().duration(transDuration)
                                   .attr("class", "row")
                                   .style("opacity", 1)
@@ -155,18 +153,18 @@
               .on("mouseover", handleMouseOver)
               .on("mouseout", handleMouseOut)
 
-      var cells = rowsGrp.selectAll("g.row").selectAll("g.cell")
+      let cells = rowsGrp.selectAll("g.row").selectAll("g.cell")
                           .data(function (d) {
                             var vals = []
                             headers.forEach((h) => vals.push(d[h]))
                             return vals
                           })
 
-      var enteredCells = cells.enter().append("g")
+      let enteredCells = cells.enter().append("g")
                               .attr("class", "cell")
                               .attr("transform", (d, i) => "translate(" + i * fieldWidth + ",0)")
 
-      var mergedCells = enteredCells.merge(cells)
+      let mergedCells = enteredCells.merge(cells)
                                     .attr("class", "cell")
                                     .attr("transform", (d, i) => "translate(" + i * fieldWidth + ",0)")
 
@@ -198,6 +196,7 @@
                           .style("opacity", 1.0)
             })
     }
+
     function drawLine(firstTime) {
       let targetRate = d3.select('div').select('#rate')
                           .property('value')
@@ -212,7 +211,7 @@
                                     'type': rate
                                   }
                                 }))
-      console.log(dataset)
+      // console.log(dataset)
       lineCanvas.selectAll("g").remove()
 
       xScale = d3.scaleLinear()
@@ -231,6 +230,7 @@
       lineCanvas.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
+                // .attr('width', 300)
                 .call(d3.axisBottom(xScale).tickFormat((d,i)=> ''+d))
                 .append("text")
                 .attr("class", "xtext")
@@ -243,6 +243,7 @@
       lineCanvas.append("g")
                 .attr("class", "y axis")
                 .attr("transform", "translate(0," + 0 + ")")
+                // .attr('width', 300)
                 .call(d3.axisLeft(yScale))
                 .attr('text-anchor', 'end')
                 .append("text")
@@ -273,27 +274,27 @@
                 .on("mouseover", handleMouseOver)
                 .on("mouseout", handleMouseOut)
     }
+
     function drawBar(firstTime) {
-      let targetResult = d3.select('div')
-        .select('#result')
-        .property('value')
+      let targetResult = d3.select('div').select('#result')
+                            .property('value')
 
       barCanvas.selectAll("g").remove()
 
-      var x = d3.scaleBand()
-        .rangeRound([0, width])
-        .padding(0.1)
+      let x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1)
 
-      var y = d3.scaleBand()
-        .rangeRound([0, height])
-        .padding(0.1)
+      let y = d3.scaleBand()
+                .rangeRound([0, height])
+                .padding(0.1)
 
       x.domain(selectedData.map(d => d['team']))
       y.domain(selectedData.map(d => Number(d[targetResult])).sort((a, b) => a - b).reverse())
 
       barCanvas.append("g")
-              .attr("transform", "translate(0," + height + ")")
-              .call(d3.axisBottom(x))
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x))
 
       barCanvas.append("g")
               .call(d3.axisLeft(y))
@@ -304,7 +305,7 @@
               .attr("text-anchor", "end")
               .text(targetResult)
 
-      var bars = barCanvas.selectAll(".bar")
+      let bars = barCanvas.selectAll(".bar")
         .data(selectedData, d => d['team'])
 
       enteredBars = bars.enter().append("rect")
@@ -316,7 +317,7 @@
         .attr("fill", d => teams[d.team])
         .attr("opacity", firstTime === 1 ? 1 : 0)
 
-      var mergedBars = enteredBars
+      let mergedBars = enteredBars
         .merge(bars)
         .transition().duration(transDuration)
         .attr("x", d => x(d.team))
@@ -331,6 +332,7 @@
         .on("mouseover", handleMouseOver)
         .on("mouseout", handleMouseOut)
     }
+
     function handleMouseOver(d, i) {
       selectedTeamLine = lineCanvas.selectAll(".line")._groups[0][i]
       selectedTeamBar = barCanvas.selectAll(".bar")._groups[0][i]
@@ -341,6 +343,7 @@
       d3.select(selectedTeamBar).style("fill", darkerColor(teams[selectedTeam]))
       d3.select(selectedTeamRow).selectAll(".cell").selectAll("text").style("font-weight", "bold")
     }
+    
     function handleMouseOut(d, i) {
       selectedTeamLine = lineCanvas.selectAll(".line")._groups[0][i]
       selectedTeamBar = barCanvas.selectAll(".bar")._groups[0][i]
@@ -351,6 +354,7 @@
       d3.select(selectedTeamBar).style("fill", teams[selectedTeam])
       d3.select(selectedTeamRow).selectAll(".cell").selectAll("text").style("font-weight", "")
     }
+
     function darkerColor(originColor) {
       return d3.range(1, 4).map(i => parseInt(originColor.slice((2 * i - 1), (2 * i + 1)), 16) + 20).map(c => c > 255 ? 255 : c).map(c => c.toString(16)).join("")
     }
