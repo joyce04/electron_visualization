@@ -1,0 +1,7 @@
+/* http://vis.stanford.edu/papers/termite */
+/* https://medium.com/employbl/launch-a-website-with-a-custom-url-using-github-pages-and-google-domains-3dd8d90cc33b */
+/* http://vialab.science.uoit.ca/portfolio/docuburst */
+/* http://vialab.science.uoit.ca/portfolio/parallel-tag-clouds-to-explore-faceted-text-corpora */
+/* http://vialab.science.uoit.ca/portfolio/nerex */
+/* https://github.com/JasonKessler/Scattertext-PyData */
+/* http://agoldst.github.io/dfr-browser/demo/#/model/grid */
