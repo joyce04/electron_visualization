@@ -1,0 +1,50 @@
+#container {
+    width: 90%;
+    margin: 0px auto;
+}
+
+#layout-header {
+    margin-bottom: 20px;
+}
+
+#layout-hbar {
+    width: 300px;
+    margin-bottom: 20px;
+    float: left;
+}
+
+#layout-output {
+    width: calc(90% - 350px);
+    padding: 20px;
+    margin-bottom: 20px;
+    float: left;
+}
+
+#layout-scatter {
+    width: 100%;
+    margin-bottom: 20px;
+    float: left;
+}
+
+#layout-table {
+    width: 100%;
+    float: left;
+}
+
+.layout-scatter {
+    border: 1px solid #bcbcbc;
+}
+
+text {
+    fill: black;
+    font: 11px sans-serif;
+    text-anchor: middle;
+}
+
+.cell rect {
+    fill: white;
+}
+
+.header rect {
+    fill: white;
+}

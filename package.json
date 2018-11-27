@@ -30,7 +30,7 @@
     "email": "gracelee@dbs.snu.ac.kr"
   },
   "devDependencies": {
-    "electron": "^2.0.10",
+    "electron": "^2.0.14",
     "electron-packager": "^12.1.2"
   },
   "dependencies": {

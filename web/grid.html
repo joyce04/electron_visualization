@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}" />
 
     <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-en.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
     <script>
@@ -20,21 +21,35 @@
             document.querySelector("html").classList.add('js');
 
             var fileInput = document.querySelector(".input-file");
-            var button = document.querySelector(".input-file-trigger");
+            var upload_button = document.querySelector(".input-file-trigger");
             var the_return = document.querySelector(".file-return");
+            var run_button = document.querySelector(".run-model-trigger")
 
-            button.addEventListener("click", function(event) {
+            upload_button.addEventListener("click", function(event) {
                 fileInput.focus();
                 return false;
             });
             fileInput.addEventListener("change", function(event) {
                 document.getElementById("upload_file_form").submit();
             });
+
+            run_button.addEventListener("click", function(event) {
+                document.getElementById("run_model_form").submit();
+            })
+
         }, false);
     </script>
     <script type="text/javascript">
         $(document).ready(function() {
             var fext = '{{ fext }}';
+            
+            if ('{{ flag }}' === 'init') {
+                $('#upload_file').css("display", "");
+                $('#run_model').css("display", "none");
+            } else if ('{{ flag }}' === 'upload') {
+                $('#upload_file').css("display", "none");
+                $('#run_model').css("display", "");
+            }
 
             if (fext == 'csv' || fext == 'tsv') {
                 var data = {{ data | tojson }};
@@ -42,6 +57,13 @@
 
                 var columns = '{{ column }}';
                 columns = columns.replace('[', '').replace(']', '').split(',');
+                
+                var options = ''
+                for(var i=0; i < columns.length; i++) {
+                    options += '<option value="'+ columns[i].replace(/&#39;/g, '').trim() + '">' + columns[i].replace(/&#39;/g, '').trim() + '</option>';
+                }
+
+                $('#target_column').append(options)
                 
                 var colw = '{{ colw }}'
                 colw = colw.replace('[', '').replace(']', '').split(',');
@@ -100,6 +122,18 @@
             <div class="input-file-container">
                 <input class="input-file" id="file" name="file" type="file" multiple>
                 <label tabindex="0" for="file" class="input-file-trigger">Select a file...</label>
+            </div>
+        </form>
+    </div>
+
+    <div id='run_model' style='display: none'>
+        <form id="run_model_form" action='/run_model' method='post'>
+            <input type="hidden" name="fname" value="{{ fname }}" />
+            <input type="hidden" name="fext" value="{{ fext }}" />
+            <select id='target_column' name="target_column" class='model-target-selection'>
+            </select>
+            <div class='run-button-container'>
+                <label tabindex="0" class="run-model-trigger">Run Model...</label>
             </div>
         </form>
     </div>

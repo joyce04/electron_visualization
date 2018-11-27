@@ -17,7 +17,8 @@ function createWindow() {
         // opacity:0.8,
         // darkTheme: true,
         // frame: false,
-        resizeable: true
+        resizeable: true,
+        show: false
     });
 
     const ses = mainWindow.webContents.session.clearCache(function() {});
@@ -35,6 +36,10 @@ function createWindow() {
         // Dereference the mainWindow object
         mainWindow = null;
     });
+
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show()
+    })
 }
 
 // This method will be called when Electron has finished

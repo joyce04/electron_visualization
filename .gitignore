@@ -4,3 +4,6 @@ Pipfile
 football_vis-darwin-x64/
 release-builds/
 .vscode/
+Visualization/
+data_output/*.tsv
+**/__pycache__/
