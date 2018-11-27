@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"> 
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
+
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-en.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+		$.jgrid.defaults.width = 1180;
+		$.jgrid.defaults.responsive = true;
+		$.jgrid.defaults.styleUI = 'Bootstrap';
+    </script>
+</head>
+
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <div id='container'>
+        <div id='layout-header'>
+            <center>
+                <h1>Topic Modeling Results</h1>
+            </center>
+        </div>
+        <div id='layout-hbar'>
+            <center>
+                <h4>Choose Topic Cluster</h4>
+                <p id='hbar-description'>Topic Keywords based on LDA</p>
+            </center>
+            <div id="hbar_container"></div>
+        </div>
+        <div id='layout-output'>
+            <div id='layout-scatter'>
+                <div style="width: 33%; height: 100%; float: left">
+                    <center>
+                        <h4 style="margin-top: 0px">Model1<br>LDA</h4>
+                        <svg class='layout-scatter' id="scatter_container_lda"></svg>
+                    </center>
+                </div>
+                <div style="width: 33%; height: 100%; float: left">
+                    <center>
+                        <h4 style="margin-top: 0px">Model2<br>K-Means</h4>
+                        <svg class='layout-scatter' id="scatter_container_km"></svg>
+                    </center>
+                </div>
+                <div style="width: 33%; height: 100%; float: left">
+                    <center>
+                        <h4 style="margin-top: 0px">Model3<br>Deep Embedding</h4>
+                        <svg class='layout-scatter' id="scatter_container_de"></svg>
+                    </center>
+                </div>
+                <center><svg id='scatter_legend' style="margin-top: 20px"></svg></center>
+            </div>
+            <div id='layout-table'>
+                <table id="jqGrid"></table>
+                <div id="jqGridPager"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+    var margin = {
+        top: 20,
+        right: 30,
+        bottom: 30,
+        left: 40
+    }
+
+    var lda_km_topic_map, km_lda_topic_map
+    var tableData
+    var hbar_type = 'lda'
+    var topicCnt = 0
+
+    var hbarCanvas = d3.select("#hbar_container").attr("width", "90%")
+    var ldaScatterCanvas = d3.select("#scatter_container_lda")
+    var kmeansScatterCanvas = d3.select("#scatter_container_km")
+    var deepembeddingScatterCanvas = d3.select("#scatter_container_de")
+
+    var lda_hbar_json = {{ lda_hbar_json | tojson }};
+    var km_hbar_json = {{ km_hbar_json | tojson }};
+    var dec_hbar_json = {{ dec_hbar_json | tojson }};
+    var lda_scatter_json = {{ lda_scatter_json | tojson }};
+    var km_scatter_json = {{ km_scatter_json | tojson }};
+    var dec_scatter_json = {{ dec_scatter_json | tojson }};
+    var document_table_json = {{ document_table_json | tojson }};
+
+    $(document).ready(function() {
+        hbarCanvas.attr("height", (100 * (lda_hbar_json.labels.length - 1)) + "px")
+        topicCnt = lda_hbar_json.labels.length - 1
+
+        topicSeq = 0
+        lda_hbar_json.labels.forEach(l => {
+            if (l != 'Default') {
+                initializeHBarChart(lda_hbar_json[l], lda_hbar_json.max_width, topicSeq++, 'lda')
+            }
+        });
+
+        initializeScatterChar(lda_scatter_json, 'lda')
+        initializeScatterChar(km_scatter_json, 'km')
+        initializeScatterChar(dec_scatter_json, 'dec')
+        initializeScatterLegend(dec_scatter_json)
+
+        lda_km_topic_map = document_table_json.lda_km_topic_map
+        km_lda_topic_map = document_table_json.km_lda_topic_map
+        lda_dec_topic_map = document_table_json.lda_dec_topic_map
+        dec_lda_topic_map = document_table_json.dec_lda_topic_map
+
+        tableData = document_table_json.rows
+        initializeTable(tableData)
+    });
+
+    function initializeHBarChart(barData, max_width, topicSeq, method) {
+        subCanvas = hbarCanvas.append('svg')
+            .attr("id", 'topic_' + topicSeq + '_bar_' + method)
+            .attr('height', '100px')
+            .on("click", function () {
+                handletMouseClick(topicSeq, method)
+            })
+            .append("g")
+            .attr("transform", "translate(" + (margin.left + 20) + ", 0)")
+
+        var x = d3.scaleBand()
+            .rangeRound([0, 400])
+            .padding(0.1)
+
+        var y = d3.scaleBand()
+            .rangeRound([0, 100])
+            .padding(0.1)
+
+        y.domain(barData.map(d => d['Term']))
+        x.domain(barData.map(d => d['Freq']))
+
+        subCanvas.append('g')
+            .call(d3.axisLeft(y).tickSize(0))
+            .call(subCanvas => subCanvas.select('.domain').remove())
+            .selectAll('text')
+            .style("text-anchor", "end")
+
+        var hbars = subCanvas.selectAll('.bar')
+            .data(barData, d => d['Term'])
+
+        enteredBars = hbars.enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", 0)
+            .attr("y", function (d, i) {
+                return 3 + 19 * i
+            })
+            .attr("height", y.bandwidth())
+            .attr("width", d => Number(d['Total']) / max_width * 200)
+            .attr("fill", '#A5C9E1')
+
+        enteredBars2 = hbars.enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", 0)
+            .attr("y", function (d, i) {
+                return 3 + 19 * i
+            })
+            .attr("height", y.bandwidth())
+            .attr("width", d => Number(d['Freq']) / max_width * 200)
+            .attr("fill", '#CC4A53')
+
+        var mergedBars = enteredBars
+            .merge(hbars)
+            .transition().duration(1000)
+            .attr("x", 0)
+            .attr("y", function (d, i) {
+                return 3 + 19 * i
+            })
+            .attr("height", y.bandwidth())
+            .attr("width", d => Number(d['Total']) / max_width * 200)
+
+        var mergedBars2 = enteredBars2
+            .merge(hbars)
+            .transition().duration(1000)
+            .attr("x", 0)
+            .attr("y", function (d, i) {
+                return 3 + 19 * i
+            })
+            .attr("height", y.bandwidth())
+            .attr("width", d => Number(d['Freq']) / max_width * 200)
+
+        hbars.exit().remove()
+
+        hbars.selectAll('.domain').remove()
+
+    }
+
+    function initializeScatterLegend(scatterData) {
+
+        var cValue = d3.schemeCategory10.slice(0, topicCnt)
+
+        legendSvg = d3.select("#scatter_legend")
+            .attr("width", (100 * (topicCnt) / 2) + "px")
+            .attr("height", "40px")
+
+        // draw legend
+        var legend = legendSvg.selectAll(".legend")
+            .data(cValue)
+            .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", function (d, i) { return "translate(" + (Math.floor(i / 2) * 100) + "," + (i % 2 * 20) + ")"; });
+        // draw legend colored rectangles
+        legend.append("rect")
+            .attr("x", 5)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", function (d, i) { return cValue[i] });
+        // draw legend text
+        legend.append("text")
+            .attr("x", 30)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "start")
+            .text(function (d, i) { return 'Topic' + (i + 1); })
+
+    }
+
+    function initializeScatterChar(scatterData, method) {
+        var chart_size = $('#layout-scatter').width() / 3 - 50
+
+        // setup x 
+        var xValue = function (d) { return d.plot_x; }, // data -> value
+            xScale = d3.scaleLinear().range([0, chart_size]), // value -> display
+            xMap = function (d) { return xScale(xValue(d)); }, // data -> display
+            xAxis = d3.axisBottom(xScale).tickSize(0).tickFormat('');
+
+        // setup y
+        var yValue = function (d) { return d.plot_y; }, // data -> value
+            yScale = d3.scaleLinear().range([chart_size, 0]), // value -> display
+            yMap = function (d) { return yScale(yValue(d)); }, // data -> display
+            yAxis = d3.axisLeft(yScale).tickSize(0).tickFormat('');
+
+        var cValue = d3.schemeCategory10
+
+        // don't want dots overlapping axis, so add in buffer to data domain
+        xScale.domain([d3.min(scatterData, xValue) - 1, d3.max(scatterData, xValue) + 1]);
+        yScale.domain([d3.min(scatterData, yValue) - 1, d3.max(scatterData, yValue) + 1]);
+
+        if (method == 'lda') {
+            ldaScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
+                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
+            canvasSvg = ldaScatterCanvas
+        } else if (method == 'km') {
+            kmeansScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
+                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
+            canvasSvg = kmeansScatterCanvas
+        } else if (method == 'dec') {
+            deepembeddingScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
+                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
+            canvasSvg = deepembeddingScatterCanvas
+        }
+
+        // x-axis
+        canvasSvg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + chart_size + ")")
+            .call(xAxis)
+            .call(canvasSvg => canvasSvg.select('.domain').remove())
+            .append("text")
+            .attr("class", "label")
+            .attr("x", chart_size)
+            .attr("y", -6)
+            .style("text-anchor", "end");
+
+        // y-axis
+        canvasSvg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .call(canvasSvg => canvasSvg.select('.domain').remove())
+            .append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end");
+
+        // draw dots
+        canvasSvg.selectAll(".dot")
+            .data(scatterData)
+            .enter().append("circle")
+            .attr("class", function (d) { return 'dot_' + d.topic + '_' + method })
+            .attr("r", 4)
+            .attr("cx", xMap)
+            .attr("cy", yMap)
+            .style("fill", function (d) { return cValue[d.topic]; })
+            .on('click', function (d) {
+                handletMouseClick(d.topic, method)
+            })
+    }
+
+    function handletMouseClick(selectedTopic, method) {
+        // If user change model, Change HBar Chart
+        if (hbar_type != method) {
+            hbar_type = method
+
+            hbarCanvas.selectAll('svg').remove()
+            if (method === 'lda') {
+                d3.select('#hbar-description').html('Topic Keywords based on LDA')
+                data = lda_hbar_json
+            } else if (method === 'km') {
+                d3.select('#hbar-description').html('Topic Keywords based on K-Means')
+                data = km_hbar_json
+            } else if (method === 'dec') {
+                d3.select('#hbar-description').html('Topic Keywords based on Deep Embedding')
+                data = dec_hbar_json
+            }
+        
+            hbarCanvas.attr("height", (100 * (data.labels.length - 1)) + "px")
+            topicCnt = data.labels.length - 1
+
+            topicSeq = 0
+            data.labels.forEach(l => {
+                if (l != 'Default') {
+                    initializeHBarChart(data[l], data.max_width, topicSeq++, method)
+                }
+            });
+
+            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', '#FF000020')           
+
+        }
+
+        if (method === 'km') {
+            ldaTopic = km_lda_topic_map[selectedTopic][0]
+        } else if (method === 'dec') {
+            ldaTopic = dec_lda_topic_map[selectedTopic][0]
+        } else {
+            ldaTopic = selectedTopic
+        }
+
+        kmTopic = lda_km_topic_map[ldaTopic]
+        decTopic = lda_dec_topic_map[ldaTopic]
+
+        for (var i = 0; i < topicCnt; i++) {
+            if (i === selectedTopic) {
+                d3.select('#topic_' + i + '_bar_' + method).style('background', '#FF000020')
+            } else {
+                d3.select('#topic_' + i + '_bar_' + method).style('background', '')
+            }
+
+            if (i === ldaTopic) {
+                d3.selectAll('.dot_' + i + '_lda').attr('r', 10)
+                lda_km_topic_map[i].forEach(idx => {
+                    d3.selectAll('.dot_' + idx + '_km').attr('r', 10)
+                })
+                lda_dec_topic_map[i].forEach(idx => {
+                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 10)
+                })
+            } else {
+                d3.selectAll('.dot_' + i + '_lda').attr('r', 4)
+                lda_km_topic_map[i].forEach(idx => {
+                    d3.selectAll('.dot_' + idx + '_km').attr('r', 4)
+                })
+                lda_dec_topic_map[i].forEach(idx => {
+                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 4)
+                })
+            }
+        }
+
+        filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic || d.topic_km in kmTopic || d.topic_lda in decTopic })
+
+        $("#jqGrid").jqGrid('clearGridData')
+            .jqGrid('setGridParam', {
+                datatype: 'local',
+                data: filteredData
+            }).trigger("reloadGrid");
+    }
+
+    function initializeTable(data) {
+        var columns = ['document', 'topic_lda', 'topic_km', 'topic_dec'];
+        var columnLabels = ['Document', 'Topic(lda)', 'Topic(KM)', 'Topic(DEC)'];
+        var colw = [70, 10, 10, 10]
+        var colModel = [];
+
+        for (i = 0; i < columns.length; i++) {
+            colModel.push({
+                label: columnLabels[i],
+                name: columns[i],
+                width: colw[i]
+            });
+        }
+
+        $("#jqGrid").jqGrid({
+            data: data,
+            datatype: "local",
+            colModel: colModel,
+            viewrecords: true,
+            width: 1170,
+            height: 570,
+            rowNum: 15,
+            autowidth: true,
+            shrinktofit: true,
+            pager: "#jqGridPager",
+            sortname: "document"
+        });
+        $('#jqGrid').jqGrid('filterToolbar');
+        $('#jqGrid').jqGrid('navGrid', "#jqGridPager", {
+            search: false,
+            add: false,
+            edit: false,
+            del: false,
+            view: true,
+            refresh: true
+        },
+            {}, // edit options
+            {}, // add options
+            {}, // delete options
+            { multipleSearch: true } // search options - define multiple search
+        );
+    }
+
+</script>
+
+</html>
