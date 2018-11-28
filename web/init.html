@@ -1,9 +1,22 @@
 <html>
+<style>
+	html {
+		background: url('../web/resource/main-page.png') no-repeat center center fixed;
+		-webkit-background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		background-size: cover;
+	}
+</style>
 <script>
-window.onload = function(){
-  location.replace("http://localhost:5000/");
-}
+	window.onload = function () {
+		setTimeout(function () {
+			location.replace("http://localhost:5000/main");
+		}, 2000);
+	}
 </script>
-<body backgroundr="../resource/loading-page.png">
+
+<body>
 </body>
+
 </html>

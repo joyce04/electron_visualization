@@ -1,0 +1,27 @@
+<html>
+<style>
+	html {
+		background: url('../web/resource/loading-page.png') no-repeat center center fixed;
+		-webkit-background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		background-size: cover;
+	}
+</style>
+<script>
+	window.onload = function () {
+		setTimeout(function () {
+			document.getElementById("run_model_form").submit();
+		}, 500);
+	}
+</script>
+
+<body>
+    <form id="run_model_form" action='/run_model' method='post'>
+        <input type="hidden" name="fname" value="{{ fname }}" />
+        <input type="hidden" name="fext" value="{{ fext }}" />
+        <input type="hidden" name="target_column" value="{{ target_column }}" />
+    </form>
+</body>
+
+</html>
