@@ -1,39 +1,40 @@
-# Import Libraries
-import pandas as pd
-import numpy as np
-import operator
-import random
-import json
-import collections
-import os
-
-from collections import Counter
-from kmeans_to_pyLDAvis import kmeans_to_prepared_data
-
-import gensim
-import pyLDAvis.gensim
-from gensim.utils import simple_preprocess
-from gensim.parsing.preprocessing import STOPWORDS
-
-import nltk
-from nltk.stem import WordNetLemmatizer, SnowballStemmer
-
-from sklearn.manifold import TSNE
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import normalize
-from sklearn.cluster import KMeans
-from sklearn import metrics
-
-from keras.models import Model
-from keras import backend as K
-from keras import layers
-from keras.initializers import VarianceScaling
-from keras.optimizers import SGD
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Conv2DTranspose
-from keras.models import Model
-from keras.engine.topology import Layer, InputSpec
-
 def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='Origin_Text', train_flag=True):
+    # Import Libraries
+    import pandas as pd
+    import numpy as np
+    import operator
+    import random
+    import json
+    import collections
+    import os
+
+    from collections import Counter
+    from kmeans_to_pyLDAvis import kmeans_to_prepared_data
+
+    import gensim
+    import pyLDAvis.gensim
+    from gensim.utils import simple_preprocess
+    from gensim.parsing.preprocessing import STOPWORDS
+
+    import nltk
+    from nltk.stem import WordNetLemmatizer, SnowballStemmer
+
+    from sklearn.manifold import TSNE
+    from sklearn.feature_extraction.text import CountVectorizer
+    from sklearn.preprocessing import normalize
+    from sklearn.cluster import KMeans
+    from sklearn import metrics
+
+    from keras.models import Model
+    from keras import backend as K
+    from keras import layers
+    from keras.initializers import VarianceScaling
+    from keras.optimizers import SGD
+    from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Conv2DTranspose
+    from keras.models import Model
+    from keras.engine.topology import Layer, InputSpec
+
+
     # Declare Class
     class ClusteringLayer(Layer):
         """
@@ -339,7 +340,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
             topic_word_counts[topic][word] += 1
             topic_counts[topic] += 1
 
-    for iter in range(3):
+    for iter in range(3000):
         for d in range(D):
             for i, (word, topic) in enumerate(zip(processed_docs[d], document_topics[d])):
                 # 깁스 샘플링 수행을 위해

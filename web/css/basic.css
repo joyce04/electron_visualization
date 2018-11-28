@@ -81,28 +81,29 @@ text.source {
 
 .input-file-container {
     position: relative;
-    width: 225px;
-}
-
-.input-file-trigger {
-    display: block;
-    padding: 14px 45px;
-    background: #39D2B4;
-    color: #fff;
-    font-size: 1em;
-    transition: all .4s;
+    overflow: hidden;
+    padding:10px 20px;
+    text-transform: uppercase;
+    color:#fff;
+    background: #3F7AD4;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    text-align:center;
     cursor: pointer;
-}
-
-.input-file {
+  }
+  .input-file {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 225px;
+    right: 0;
+    margin: 0;
+    padding: 0;
     opacity: 0;
-    padding: 14px 0;
-    cursor: pointer;
-}
+    height:100%;
+    width:100%;
+  }
 
 
 /* END */
@@ -119,20 +120,16 @@ text.source {
 
 .run-button-container {
     position: relative;
-    width: 225px;
-}
-
-.run-model-trigger {
-    display: block;
-    padding: 14px 45px;
-    background: #39D2B4;
-    color: #fff;
-    font-size: 1em;
-    transition: all .4s;
+    overflow: hidden;
+    padding:10px 20px;
+    text-transform: uppercase;
+    color:#fff;
+    background: #3F7AD4;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    text-align:center;
     cursor: pointer;
-}
-
-.model-target-selection {
-    margin-bottom: 5px;
-    width: 225px;
 }

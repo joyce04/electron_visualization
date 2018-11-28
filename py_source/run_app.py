@@ -5,6 +5,7 @@ import pandas as pd
 import json
 import collections
 import os
+import pickle
 from werkzeug.utils import secure_filename
 from topic_modeling_three_models import run_topic_modeling
 
@@ -15,7 +16,13 @@ def index():
 	"""
 	Rerount to index html
 	"""
-	return render_template('index.html')
+	return render_template('init.html')
+
+@app.route('/main')
+def mainPage():
+	recent_models = [f for f in os.listdir() if 'pkl' in f]
+
+	return render_template('main.html', recent = recent_models, fname = '', fext='none', column = [], colw = [], data = '{}', flag='init')
 
 @app.route('/user/<name>', methods=['GET', 'POST'])
 def user(name):
@@ -73,7 +80,17 @@ def upload_file():
 	json_data['rows'] = df.to_dict(orient='records')
 	jsonp = json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', ''))
 
-	return render_template('grid.html', fname = fname, fext = fext, column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
+	recent_models = [f for f in os.listdir() if 'pkl' in f]
+
+	return render_template('main.html', recent = recent_models, fname = fname, fext = fext, column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
+
+@app.route('/prepare_model', methods=['POST'])
+def prepare_model():
+	fname = request.form['fname']
+	fext = request.form['fext']
+	target_column_name = request.form['target_column']
+
+	return render_template('loading.html', 	fname = fname, fext = fext, target_column = target_column_name)
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
@@ -83,7 +100,25 @@ def run_model():
 	
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(fname=fname, fext=fext, target_column_name=target_column_name, train_flag=False)
 
+	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
+
+	with open(os.path.join(os.getcwd(), '%s.pkl' % fname), 'wb') as f:
+		pickle.dump(outputs, f)
+	f.close()
+
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+
+@app.route('/load_model/<model_name>', methods=['GET', 'POST'])
+def load_model(model_name):
+	
+	with open(os.path.join(os.getcwd(), '%s.pkl' % model_name), 'rb') as f:
+		outputs = pickle.load(f)
+	f.close()
+
+	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = outputs
+
+	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+
 
 if __name__ == '__main__':
     print("start")
