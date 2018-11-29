@@ -121,7 +121,6 @@ text.source {
 .run-button-container {
     position: relative;
     overflow: hidden;
-    padding:10px 20px;
     text-transform: uppercase;
     color:#fff;
     background: #3F7AD4;
