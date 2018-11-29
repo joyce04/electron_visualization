@@ -1,4 +1,4 @@
-def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='Origin_Text', train_flag=True):
+def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target_column_name='Origin_Text', train_flag=True):
     # Import Libraries
     import pandas as pd
     import numpy as np
@@ -13,8 +13,6 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
 
     import gensim
     import pyLDAvis.gensim
-    from gensim.utils import simple_preprocess
-    from gensim.parsing.preprocessing import STOPWORDS
 
     import nltk
     from nltk.stem import WordNetLemmatizer, SnowballStemmer
@@ -30,7 +28,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
     from keras import layers
     from keras.initializers import VarianceScaling
     from keras.optimizers import SGD
-    from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, Conv2DTranspose
+    from keras.layers import Input, Dense, Conv2D, Flatten, Reshape, Conv2DTranspose
     from keras.models import Model
     from keras.engine.topology import Layer, InputSpec
 
@@ -113,9 +111,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
         return result
 
     def get_variables(K):
-        # 사용자가 원하는 토픽의 갯수
-        K = 8
-
+        
         # 각 토픽이 각 문서에 할당되는 횟수
         # Counter로 구성된 리스트
         # 각 Counter는 각 문서를 의미
@@ -177,30 +173,6 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
             rnd -= w
             if rnd <= 0:
                 return i
-
-    def autoencoderConv2D_1(input_shape=(28, 28, 1), filters=[32, 64, 128, 10]):
-        input_img = Input(shape=input_shape)
-        if input_shape[0] % 8 == 0:
-            pad3 = 'same'
-        else:
-            pad3 = 'valid'
-        x = Conv2D(filters[0], 5, strides=2, padding='same', activation='relu', name='conv1', input_shape=input_shape)(input_img)
-
-        x = Conv2D(filters[1], 5, strides=2, padding='same', activation='relu', name='conv2')(x)
-
-        x = Conv2D(filters[2], 3, strides=2, padding=pad3, activation='relu', name='conv3')(x)
-
-        x = Flatten()(x)
-        encoded = Dense(units=filters[3], name='embedding')(x)
-        x = Dense(units=filters[2]*int(input_shape[0]/8)*int(input_shape[0]/8), activation='relu')(encoded)
-
-        x = Reshape((int(input_shape[0]/8), int(input_shape[0]/8), filters[2]))(x)
-        x = Conv2DTranspose(filters[1], 3, strides=2, padding=pad3, activation='relu', name='deconv3')(x)
-
-        x = Conv2DTranspose(filters[0], 5, strides=2, padding='same', activation='relu', name='deconv2')(x)
-
-        decoded = Conv2DTranspose(input_shape[2], 5, strides=2, padding='same', name='deconv1')(x)
-        return Model(inputs=input_img, outputs=decoded, name='AE'), Model(inputs=input_img, outputs=encoded, name='encoder')
 
     def autoencoder(dims, act='relu', init='glorot_uniform'):
         """
@@ -305,7 +277,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
     else:
         origin_data = pd.read_csv(os.path.join(os.getcwd(), 'mallet_top_sen.tsv'), sep='\t', index_col=0).reset_index(drop=True)
 
-    train_flag = False
+    # train_flag = False
 
     ## Extract target data
     documents = origin_data[[target_column_name]].reset_index()
@@ -326,7 +298,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
 
     ## LDA
     print("LDA")
-    n_clusters = 8
+    n_clusters = cluster_K
     V, D, document_topic_counts, topic_word_counts, topic_counts, document_lengths, distinct_words = get_variables(n_clusters)
 
     # 각 단어를 임의의 토픽에 랜덤 배정
@@ -390,7 +362,7 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
     print("K-Means")
     docs = list(documents.Origin_Text.values)
     X = normalize(tsne_data, norm='l2')
-    kmeans_model = KMeans(n_clusters=8, init="random", max_iter=30000).fit(X)
+    kmeans_model = KMeans(n_clusters=cluster_K, init="random", max_iter=30000).fit(X)
     labels = kmeans_model.labels_
     centers = kmeans_model.cluster_centers_
 
@@ -417,9 +389,10 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
 
     ## DEC
     print("DEC")
+    K.clear_session()
     max_count = max([np.max(tsne_data[i]) for i in tsne_data]) * 1.
     x = np.divide(tsne_data, max_count)
-    n_clusters = 8
+    n_clusters = cluster_K
 
     ## Create Fully Connection Model
     dims = [x.shape[-1], 500, 500, 2000, 10]
@@ -528,20 +501,20 @@ def run_topic_modeling(fname='mallet_top_sen', fext='tsv', target_column_name='O
     km_docs_by_topic = km_result.groupby('topic').agg({'id': 'unique'})
     dec_docs_by_topic = dec_result.groupby('topic').agg({'id': 'unique'})
 
-    lda_km_topic_map = {i: [] for i in range(8)} # key: lda, value: km
-    km_lda_topic_map = {i: [] for i in range(8)} # key: km, value: lda
+    lda_km_topic_map = {i: [] for i in range(cluster_K)} # key: lda, value: km
+    km_lda_topic_map = {i: [] for i in range(cluster_K)} # key: km, value: lda
 
-    for i in range(8):
-        lda_topic = int(np.argmax([intersect(km_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(8)]))
+    for i in range(cluster_K):
+        lda_topic = int(np.argmax([intersect(km_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(cluster_K)]))
         km_topic = i
         lda_km_topic_map[lda_topic].append(km_topic)
         km_lda_topic_map[km_topic].append(lda_topic)
 
-    lda_dec_topic_map = {i: [] for i in range(8)} # key: lda, value: km
-    dec_lda_topic_map = {i: [] for i in range(8)} # key: km, value: lda
+    lda_dec_topic_map = {i: [] for i in range(cluster_K)} # key: lda, value: km
+    dec_lda_topic_map = {i: [] for i in range(cluster_K)} # key: km, value: lda
 
-    for i in range(8):
-        lda_topic = int(np.argmax([intersect(dec_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(8)]))
+    for i in range(cluster_K):
+        lda_topic = int(np.argmax([intersect(dec_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(cluster_K)]))
         dec_topic = i
         lda_dec_topic_map[lda_topic].append(dec_topic)
         dec_lda_topic_map[dec_topic].append(lda_topic)

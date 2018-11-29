@@ -89,16 +89,19 @@ def prepare_model():
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']
+	cluster_K = request.form['k']
+	print(cluster_K)
 
-	return render_template('loading.html', 	fname = fname, fext = fext, target_column = target_column_name)
+	return render_template('loading.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']
+	cluster_K = int(request.form['k']) if len(request.form['k']) > 0 else 8
 	
-	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(fname=fname, fext=fext, target_column_name=target_column_name, train_flag=False)
+	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(cluster_K = cluster_K, fname=fname, fext=fext, target_column_name=target_column_name)
 
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
 
