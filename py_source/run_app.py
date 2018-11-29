@@ -7,7 +7,6 @@ import collections
 import os
 import pickle
 from werkzeug.utils import secure_filename
-from topic_modeling_three_models import run_topic_modeling
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
@@ -96,6 +95,8 @@ def prepare_model():
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
+	from topic_modeling_three_models import run_topic_modeling
+	
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']

@@ -244,7 +244,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
         return get_jsonp(hbar_json)
 
     def get_scatter_chart_json(topic_array, method):
-        doc_result = documents[['index', 'Origin_Text']]
+        doc_result = documents[['index', target_column_name]]
         doc_result.columns = ['id', 'document']
         doc_result['topic'] = topic_array
         doc_result = pd.merge(doc_result, pd.DataFrame(tsne_result, columns=['plot_x', 'plot_y']), left_index=True, right_index=True)
@@ -271,11 +271,11 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     print("Load Data & Preprocessing")
 
     if fext == 'csv':
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), index_col=0).reset_index(drop=True)
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
     elif fext == 'tsv':
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t', index_col=0).reset_index(drop=True)
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
     else:
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'mallet_top_sen.tsv'), sep='\t', index_col=0).reset_index(drop=True)
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'mallet_top_sen.tsv'), sep='\t')
 
     # train_flag = False
 
@@ -360,7 +360,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
 
     ## K-Means
     print("K-Means")
-    docs = list(documents.Origin_Text.values)
+    docs = list(documents[[target_column_name]].values)
     X = normalize(tsne_data, norm='l2')
     kmeans_model = KMeans(n_clusters=cluster_K, init="random", max_iter=30000).fit(X)
     labels = kmeans_model.labels_
@@ -389,7 +389,6 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
 
     ## DEC
     print("DEC")
-    K.clear_session()
     max_count = max([np.max(tsne_data[i]) for i in tsne_data]) * 1.
     x = np.divide(tsne_data, max_count)
     n_clusters = cluster_K
@@ -505,7 +504,9 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     km_lda_topic_map = {i: [] for i in range(cluster_K)} # key: km, value: lda
 
     for i in range(cluster_K):
-        lda_topic = int(np.argmax([intersect(km_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(cluster_K)]))
+        if i not in km_docs_by_topic.index.tolist():
+            continue
+        lda_topic = int(np.argmax([intersect(km_docs_by_topic.loc[i].values[0], lda_docs_by_topic.loc[j].values[0]) for j in range(cluster_K)]))
         km_topic = i
         lda_km_topic_map[lda_topic].append(km_topic)
         km_lda_topic_map[km_topic].append(lda_topic)
@@ -514,7 +515,10 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     dec_lda_topic_map = {i: [] for i in range(cluster_K)} # key: km, value: lda
 
     for i in range(cluster_K):
-        lda_topic = int(np.argmax([intersect(dec_docs_by_topic.iloc[i].values[0], lda_docs_by_topic.iloc[j].values[0]) for j in range(cluster_K)]))
+        if i not in dec_docs_by_topic.index.tolist():
+            continue
+        
+        lda_topic = int(np.argmax([intersect(dec_docs_by_topic.loc[i].values[0], lda_docs_by_topic.loc[j].values[0]) for j in range(cluster_K)]))
         dec_topic = i
         lda_dec_topic_map[lda_topic].append(dec_topic)
         dec_lda_topic_map[dec_topic].append(lda_topic)
@@ -532,5 +536,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
 
     write_json_to_file('./Visualization/res/document_table.json', json_data)
     document_table_json = get_jsonp(json_data)
+
+    K.clear_session()
 
     return lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json

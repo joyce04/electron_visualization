@@ -125,7 +125,6 @@ def _get_topic_info(centers, cluster_size, index2word,
     # Category: for each topic
     for c, n_docs in enumerate(cluster_size):
         if n_docs == 0:
-            keywords.append([])
             continue
 
         topic_idx = c + 1
