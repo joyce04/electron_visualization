@@ -63,10 +63,17 @@
             var recent = '{{ recent }}'
             recent = recent.replace('[', '').replace(']', '').split('&#39;,');
             var recent_models = ''
-            for(var i=0; i < recent.length/2; i++) {
+            var model_date = ''
+            for (var i=0; i < recent.length/2; i++) {
                 model_name = recent[i + recent.length/2].replace(/&#39;/g, '').replace('.pkl', '').trim()
                 model_file = recent[i].replace(/&#39;/g, '').replace('.pkl', '').trim()
-                recent_models += '<p><a href=/load_model/' + model_file + '>' + model_name + '</a></p>';
+
+                if (model_date != model_name.split(',')[1].trim()) {
+                    model_date = model_name.split(',')[1].trim()
+                    recent_models += '<br/><h5>[' + model_date + ']</h5>'
+                }
+
+                recent_models += '<h6><a href=/load_model/' + model_file + '>' + model_name + '</a></h6>';
             }
 
             $('#recent_models').append(recent_models)
@@ -163,7 +170,7 @@
                                     </div>
                                 </form>
                                 <br /><br />
-                                <h4>Recent Models</h4>
+                                <h4><b>Recent Models</b></h4>
                                 <h5>(Model Name: Cluster size, Run Date, Seq)</h5>
                                 <div id='recent_models'></div>
                             </div>
