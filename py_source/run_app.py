@@ -100,9 +100,7 @@ def upload_file():
 	json_data['rows'] = df.to_dict(orient='records')
 	jsonp = json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', ''))
 
-	recent_models = [f for f in os.listdir() if 'pkl' in f]
-
-	return render_template('main.html', recent = recent_models, fname = fname, fext = fext, column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
+	return render_template('main.html', recent = [], fname = fname, fext = fext, column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
 
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
