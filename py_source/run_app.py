@@ -20,7 +20,8 @@ def index():
 
 @app.route('/main')
 def mainPage():
-	recent_models = [f for f in os.listdir('./model_output') if 'pkl' in f]
+	model_files = [f for f in os.listdir('./model_output') if 'pkl' in f]
+	recent_models = []
 
 	for fn in [f for f in os.listdir('./model_output') if '.pkl' in f]:
 		recent_model_propeties = fn.split('.')[0].split('_')
@@ -35,7 +36,11 @@ def mainPage():
 			model_seq = int(recent_model_propeties[-1])
 			model_cluster = int(recent_model_propeties[-3])
 
-		recent_models.append('%s(%d, %s, %d)' % (model_name, model_cluster, model_date, model_seq))
+		recent_models.append([model_name, model_cluster, model_date, model_seq])
+
+	rdf = pd.DataFrame(recent_models, columns=['model_name', 'model_cluster', 'model_date', 'model_seq']).reset_index()
+	rdf = rdf.sort_values(['model_date', 'model_name', 'model_seq'], ascending=[False, True, True])
+	recent_models = [model_files[i] for i in rdf.index.tolist()] + ['%s(%d, %s, %d)' % tuple(rm[1:]) for rm in rdf.values.tolist()]
 
 	return render_template('main.html', recent = recent_models, fname = '', fext='none', column = [], colw = [], data = '{}', flag='init')
 
