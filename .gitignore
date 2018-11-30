@@ -8,3 +8,4 @@ Visualization/
 data_output/*.tsv
 **/__pycache__/
 **/mallet_top_sen.tsv
+**/.ipynb_checkpoints
