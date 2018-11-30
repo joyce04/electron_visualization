@@ -129,7 +129,7 @@ def run_model():
 		os.mkdir('model_output')
 
 	todaystr = datetime.today().strftime("%Y%m%d")
-	existedResult = len([f for f in os.listdir() if '%s_%d_%s' % (fname, cluster_K, todaystr) in f])
+	existedResult = len([f for f in os.listdir('./model_output') if '%s_%d_%s' % (fname, cluster_K, todaystr) in f])
 	resultfname = '%s_%d_%s.pkl' % (fname, cluster_K, todaystr) if existedResult == 0 else '%s_%d_%s_%d.pkl' % (fname, cluster_K, todaystr, (existedResult+1))
 
 	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
