@@ -6,6 +6,7 @@ import json
 import collections
 import os
 import pickle
+from datetime import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
@@ -19,7 +20,22 @@ def index():
 
 @app.route('/main')
 def mainPage():
-	recent_models = [f for f in os.listdir() if 'pkl' in f]
+	recent_models = [f for f in os.listdir('./model_output') if 'pkl' in f]
+
+	for fn in [f for f in os.listdir('./model_output') if '.pkl' in f]:
+		recent_model_propeties = fn.split('.')[0].split('_')
+		if len(recent_model_propeties[-1]) == 8:
+			model_name = '_'.join(recent_model_propeties[:-2])
+			model_date = recent_model_propeties[-1]
+			model_seq = 1
+			model_cluster = int(recent_model_propeties[-2])
+		else:
+			model_name = '_'.join(recent_model_propeties[:-3])
+			model_date = recent_model_propeties[-2]
+			model_seq = int(recent_model_propeties[-1])
+			model_cluster = int(recent_model_propeties[-3])
+
+		recent_models.append('%s(%d, %s, %d)' % (model_name, model_cluster, model_date, model_seq))
 
 	return render_template('main.html', recent = recent_models, fname = '', fext='none', column = [], colw = [], data = '{}', flag='init')
 
@@ -106,7 +122,14 @@ def run_model():
 
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
 
-	with open(os.path.join(os.getcwd(), '%s.pkl' % fname), 'wb') as f:
+	if 'model_output' not in os.listdir():
+		os.mkdir('model_output')
+
+	todaystr = datetime.today().strftime("%Y%m%d")
+	existedResult = len([f for f in os.listdir() if '%s_%d_%s' % (fname, cluster_K, todaystr) in f])
+	resultfname = '%s_%d_%s.pkl' % (fname, cluster_K, todaystr) if existedResult == 0 else '%s_%d_%s_%d.pkl' % (fname, cluster_K, todaystr, (existedResult+1))
+
+	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
 		pickle.dump(outputs, f)
 	f.close()
 
@@ -115,7 +138,7 @@ def run_model():
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
 def load_model(model_name):
 	
-	with open(os.path.join(os.getcwd(), '%s.pkl' % model_name), 'rb') as f:
+	with open(os.path.join(os.getcwd(), 'model_output', '%s.pkl' % model_name), 'rb') as f:
 		outputs = pickle.load(f)
 	f.close()
 
