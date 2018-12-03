@@ -197,7 +197,7 @@
         var cValue = d3.schemeCategory10.slice(0, topicCnt)
 
         legendSvg = d3.select("#scatter_legend")
-            .attr("width", (100 * (topicCnt) / 2) + "px")
+            .attr("width", (100 * Math.round(topicCnt / 2)) + "px")
             .attr("height", "40px")
 
         // draw legend
