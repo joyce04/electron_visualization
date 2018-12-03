@@ -17,6 +17,35 @@
 		$.jgrid.defaults.width = 1180;
 		$.jgrid.defaults.responsive = true;
 		$.jgrid.defaults.styleUI = 'Bootstrap';
+        
+        function post_to_url(model_method) {
+            if (model_method === "lda") {
+                barjson = lda_hbar_json
+            } else if (model_method === "km") {
+                barjson = km_hbar_json
+            } else if (model_method === "dec") {
+                barjson = dec_hbar_json
+            }
+
+            var form = document.createElement("form");
+            form.setAttribute("method", "POST");
+            form.setAttribute("action", "/detail");
+        
+            var barjsonField = document.createElement("input");
+            barjsonField.setAttribute("type", "hidden");
+            barjsonField.setAttribute("name", "barjson");
+            barjsonField.setAttribute("value", JSON.stringify(barjson));
+            form.appendChild(barjsonField);
+
+            var docjsonField = document.createElement("input");
+            docjsonField.setAttribute("type", "hidden");
+            docjsonField.setAttribute("name", "doctable");
+            docjsonField.setAttribute("value", JSON.stringify(document_table_json));
+            form.appendChild(docjsonField);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
 </head>
 
@@ -39,19 +68,19 @@
             <div id='layout-scatter'>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <h4 style="margin-top: 0px">Model1<br>LDA</h4>
+                        <a href="javascript:post_to_url('lda')"><h4 style="margin-top: 0px">Model1<br>LDA</h4></a>
                         <svg class='layout-scatter' id="scatter_container_lda"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <h4 style="margin-top: 0px">Model2<br>K-Means</h4>
+                        <a href="javascript:post_to_url('km')"><h4 style="margin-top: 0px">Model2<br>K-Means</h4></a>
                         <svg class='layout-scatter' id="scatter_container_km"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <h4 style="margin-top: 0px">Model3<br>Deep Embedding</h4>
+                        <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px">Model3<br>Deep Embedding</h4></a>
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
                 </div>
@@ -98,7 +127,7 @@
         topicSeq = 0
         lda_hbar_json.labels.forEach(l => {
             if (l != 'Default') {
-                initializeHBarChart(lda_hbar_json[l], lda_hbar_json.max_width, topicSeq++, 'lda')
+                initializeHBarChart(lda_hbar_json[l].slice(0, 5), lda_hbar_json.max_width, topicSeq++, 'lda')
             }
         });
 
@@ -318,7 +347,7 @@
             topicSeq = 0
             data.labels.forEach(l => {
                 if (l != 'Default') {
-                    initializeHBarChart(data[l], data.max_width, topicSeq++, method)
+                    initializeHBarChart(data[l].slice(0, 5), data.max_width, topicSeq++, method)
                 }
             });
 
@@ -411,7 +440,7 @@
             {}, // edit options
             {}, // add options
             {}, // delete options
-            { multipleSearch: true } // search options - define multiple search
+            {} // search options - define multiple search
         );
     }
 

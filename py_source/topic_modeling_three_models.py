@@ -236,7 +236,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
         hbar_json['labels'] = vis_data.topic_info.Category.unique().tolist()
         hbar_json['max_width'] = vis_data.topic_info[vis_data.topic_info.Category != 'Default'][['Total']].max()[0] * 1.
         for l in vis_data.topic_info.Category.unique().tolist():
-            tmp_df = vis_data.topic_info[vis_data.topic_info.Category == l].sort_values(['Category', 'Freq'], ascending=[True, False]).groupby('Category').head()
+            tmp_df = vis_data.topic_info[vis_data.topic_info.Category == l].sort_values(['Category', 'Freq'], ascending=[True, False])
             tmp_df.Total = tmp_df.Total.apply(lambda x: x * 1.)
             hbar_json[l] = list(tmp_df[['Term', 'Freq', 'Total']].sort_values('Freq', ascending=False).reset_index().to_dict('index').values())
 
