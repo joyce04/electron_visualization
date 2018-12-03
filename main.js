@@ -25,8 +25,6 @@ function createWindow() {
 
     // Load the index page
     mainWindow.loadFile('./web/init.html')
-        // mainWindow.loadURL('http://localhost:5000/');
-        // mainWindow.loadFile('./web/d3_test.html')
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
@@ -41,18 +39,6 @@ function createWindow() {
         mainWindow.show()
     })
 }
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser mainWindow.
-// Some APIs can only be used after this event occurs.
-app.on('ready', () => {
-    // spawn server
-    var subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
-    // let subpy = require('child_process').spawn('python3', [path.join(__dirname, '../app.asar.unpacked/my-folder', 'run_app.py')])
-
-    createWindow();
-    addAppEventListeners();
-});
 
 function addAppEventListeners() {
     // disable menu
@@ -74,3 +60,14 @@ function addAppEventListeners() {
         subpy.kill('SIGINT');
     });
 }
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser mainWindow.
+// Some APIs can only be used after this event occurs.
+app.on('ready', () => {
+    // spawn server
+    subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+
+    createWindow();
+    addAppEventListeners();
+});
