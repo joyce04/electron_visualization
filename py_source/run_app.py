@@ -6,6 +6,8 @@ import json
 import collections
 import os
 import pickle
+import spacy
+from spacy import displacy
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
@@ -148,6 +150,24 @@ def load_model(model_name):
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = outputs
 
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+
+@app.route('/detail', methods=['POST'])
+def load_detail():
+	barjson = json.loads(request.form['barjson'])
+	doctable = json.loads(request.form['doctable'])
+
+	return render_template('detail.html', bar_json = barjson, document_table_json = doctable)
+
+@app.route('/entities', methods=['POST'])
+def get_entities():
+	docdata = json.loads(request.form['data'])
+	target_text = docdata['rows'][int(request.form['idx'])]['document']
+	
+	nlp = spacy.load('en')
+	doc = nlp(target_text)
+	dochtml = displacy.render(doc, style='ent')
+
+	return json.dumps({ 'dochtml': dochtml }, ensure_ascii=False, indent='\t')
 
 
 if __name__ == '__main__':
