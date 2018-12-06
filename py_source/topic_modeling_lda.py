@@ -110,6 +110,6 @@ def run_lda(n_clusters, processed_docs, itercnt=3):
     vocab = list(distinct_words)
     term_frequency = np.array([topic_word_counts[i][k] for i in range(n_clusters) for k in list(distinct_words)]).reshape((n_clusters, len(distinct_words))).sum(axis=0)
 
-    labels = np.array([max(document_topic_counts[x].items(), key=operator.itemgetter(1))[0] for x in range(D)])
+    # labels = np.array([max(document_topic_counts[x].items(), key=operator.itemgetter(1))[0] for x in range(D)])
 
-    return topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency, labels
+    return topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency

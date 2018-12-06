@@ -114,6 +114,20 @@ def prepare_model():
 
 	return render_template('loading.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 
+@app.route('/upload_model', methods=['POST'])
+def upload_model():
+	from topic_modeling_three_models import load_topic_modeling
+
+	f = request.files['file']
+	if f.filename.split('.')[1] != 'pkl':
+		return render_template('error.html', error='not available file format')
+
+	saved_model = pickle.load(f)
+
+	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
+
+	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+
 @app.route('/run_model', methods=['POST'])
 def run_model():
 	from topic_modeling_three_models import run_topic_modeling
