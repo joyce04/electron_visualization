@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
 
@@ -68,11 +68,11 @@
             success: function(res) {
                 dochtml = JSON.parse(res).dochtml
                 $('#entities_render').html(dochtml)
-                
+
                 $('#entities_list').html($(dochtml).find("mark")[0])
             },
-            error: function(error){ 
-                console.log(error); 
+            error: function(error){
+                console.log(error);
             }
         })
     }
@@ -185,7 +185,7 @@
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
-            onSelectRow: function(rowidx) {    
+            onSelectRow: function(rowidx) {
                 pgidx = $(".ui-pg-input").val()
                 dataidx = $("#jqGrid").getGridParam("reccount") * (pgidx-1) + (rowidx * 1) - 1
 
