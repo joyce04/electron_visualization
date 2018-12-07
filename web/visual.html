@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
 
@@ -17,7 +17,7 @@
 		$.jgrid.defaults.width = 1180;
 		$.jgrid.defaults.responsive = true;
 		$.jgrid.defaults.styleUI = 'Bootstrap';
-        
+
         function post_to_url(model_method) {
             if (model_method === "lda") {
                 barjson = lda_hbar_json
@@ -30,7 +30,7 @@
             var form = document.createElement("form");
             form.setAttribute("method", "POST");
             form.setAttribute("action", "/detail");
-        
+
             var barjsonField = document.createElement("input");
             barjsonField.setAttribute("type", "hidden");
             barjsonField.setAttribute("name", "barjson");
@@ -42,7 +42,7 @@
             docjsonField.setAttribute("name", "doctable");
             docjsonField.setAttribute("value", JSON.stringify(document_table_json));
             form.appendChild(docjsonField);
-            
+
             document.body.appendChild(form);
             form.submit();
         }
@@ -60,6 +60,11 @@
         <div id='layout-hbar'>
             <center>
                 <h4>Choose Topic Cluster</h4>
+                <ul id='hbar_radio' style='width:100%' class="button-group">
+                  <li><a href="#" class="button">LDA</a></li>
+                  <li><a href="#" class="button">K-Means</a></li>
+                  <li><a href="#" class="button">Deep Embedding</a></li>
+                </ul>
                 <p id='hbar-description'>Topic Keywords based on LDA</p>
             </center>
             <div id="hbar_container"></div>
@@ -68,19 +73,19 @@
             <div id='layout-scatter'>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('lda')"><h4 style="margin-top: 0px">Model1<br>LDA</h4></a>
+                        <a href="javascript:post_to_url('lda')"><h4 style="margin-top: 0px">LDA</h4></a>
                         <svg class='layout-scatter' id="scatter_container_lda"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('km')"><h4 style="margin-top: 0px">Model2<br>K-Means</h4></a>
+                        <a href="javascript:post_to_url('km')"><h4 style="margin-top: 0px">K-Means</h4></a>
                         <svg class='layout-scatter' id="scatter_container_km"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px">Model3<br>Deep Embedding</h4></a>
+                        <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px">Deep Embedding</h4></a>
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
                 </div>
@@ -254,7 +259,7 @@
     function initializeScatterChar(scatterData, method) {
         var chart_size = $('#layout-scatter').width() / 3 - 50
 
-        // setup x 
+        // setup x
         var xValue = function (d) { return d.plot_x; }, // data -> value
             xScale = d3.scaleLinear().range([0, chart_size]), // value -> display
             xMap = function (d) { return xScale(xValue(d)); }, // data -> display
@@ -272,19 +277,10 @@
         xScale.domain([d3.min(scatterData, xValue) - 1, d3.max(scatterData, xValue) + 1]);
         yScale.domain([d3.min(scatterData, yValue) - 1, d3.max(scatterData, yValue) + 1]);
 
-        if (method == 'lda') {
-            ldaScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
-                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
-            canvasSvg = ldaScatterCanvas
-        } else if (method == 'km') {
-            kmeansScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
-                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
-            canvasSvg = kmeansScatterCanvas
-        } else if (method == 'dec') {
-            deepembeddingScatterCanvas.attr("width", ($('#layout-scatter').width() / 3 - 50) + "px")
-                .attr("height", ($('#layout-scatter').width() / 3 - 50) + "px")
-            canvasSvg = deepembeddingScatterCanvas
-        }
+        scatter_margin = 40
+        var canvas = {'lda':ldaScatterCanvas, 'km':kmeansScatterCanvas, 'dec':deepembeddingScatterCanvas}
+        canvasSvg = canvas[method].attr("width", ($('#layout-scatter').width() / 3 - scatter_margin) + "px")
+            .attr("height", ($('#layout-scatter').width() / 3 - scatter_margin) + "px")
 
         // x-axis
         canvasSvg.append("g")
@@ -340,7 +336,7 @@
                 d3.select('#hbar-description').html('Topic Keywords based on Deep Embedding')
                 data = dec_hbar_json
             }
-        
+
             hbarCanvas.attr("height", (100 * (data.labels.length - 1)) + "px")
             topicCnt = data.labels.length - 1
 
@@ -351,7 +347,7 @@
                 }
             });
 
-            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', '#FF000020')           
+            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', '#FF000020')
 
         }
 
@@ -395,10 +391,10 @@
         filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic || d.topic_km in kmTopic || d.topic_lda in decTopic })
 
         $("#jqGrid").jqGrid('clearGridData')
-            .jqGrid('setGridParam', {
-                datatype: 'local',
-                data: filteredData
-            }).trigger("reloadGrid");
+                    .jqGrid('setGridParam', {
+                        datatype: 'local',
+                        data: filteredData
+                    }).trigger("reloadGrid");
     }
 
     function initializeTable(data) {
@@ -426,7 +422,10 @@
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
-            sortname: "document"
+            sortname: "document",
+            // gridComplete: function(){
+            //
+            // }
         });
         $('#jqGrid').jqGrid('filterToolbar');
         $('#jqGrid').jqGrid('navGrid', "#jqGridPager", {
