@@ -175,6 +175,7 @@
             .call(d3.axisLeft(y).tickSize(0))
             .call(subCanvas => subCanvas.select('.domain').remove())
             .selectAll('text')
+            .attr("x", 5)
             .style("text-anchor", "end")
 
         var hbars = subCanvas.selectAll('.bar')
@@ -182,7 +183,7 @@
 
         enteredBars = hbars.enter().append("rect")
             .attr("class", "bar")
-            .attr("x", 0)
+            .attr("x", 10)
             .attr("y", function (d, i) {
                 return 3 + 19 * i
             })
@@ -192,7 +193,7 @@
 
         enteredBars2 = hbars.enter().append("rect")
             .attr("class", "bar")
-            .attr("x", 0)
+            .attr("x", 10)
             .attr("y", function (d, i) {
                 return 3 + 19 * i
             })
@@ -203,7 +204,7 @@
         var mergedBars = enteredBars
             .merge(hbars)
             .transition().duration(1000)
-            .attr("x", 0)
+            .attr("x", 10)
             .attr("y", function (d, i) {
                 return 3 + 19 * i
             })
@@ -213,7 +214,7 @@
         var mergedBars2 = enteredBars2
             .merge(hbars)
             .transition().duration(1000)
-            .attr("x", 0)
+            .attr("x", 10)
             .attr("y", function (d, i) {
                 return 3 + 19 * i
             })
@@ -257,7 +258,8 @@
     }
 
     function initializeScatterChar(scatterData, method) {
-        var chart_size = $('#layout-scatter').width() / 3 - 50
+        scatter_margin = 10
+        var chart_size = $('#layout-scatter').width() / 3 - scatter_margin
 
         // setup x
         var xValue = function (d) { return d.plot_x; }, // data -> value
@@ -277,7 +279,6 @@
         xScale.domain([d3.min(scatterData, xValue) - 1, d3.max(scatterData, xValue) + 1]);
         yScale.domain([d3.min(scatterData, yValue) - 1, d3.max(scatterData, yValue) + 1]);
 
-        scatter_margin = 40
         var canvas = {'lda':ldaScatterCanvas, 'km':kmeansScatterCanvas, 'dec':deepembeddingScatterCanvas}
         canvasSvg = canvas[method].attr("width", ($('#layout-scatter').width() / 3 - scatter_margin) + "px")
             .attr("height", ($('#layout-scatter').width() / 3 - scatter_margin) + "px")
@@ -418,7 +419,7 @@
             viewrecords: true,
             width: 1170,
             height: 570,
-            rowNum: 15,
+            rowNum: 12,
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
