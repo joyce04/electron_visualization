@@ -61,9 +61,9 @@
             <center>
                 <h4>Choose Topic Cluster</h4>
                 <ul id='hbar_radio' style='width:100%' class="button-group">
-                  <li><a href="#" class="button">LDA</a></li>
-                  <li><a href="#" class="button">K-Means</a></li>
-                  <li><a href="#" class="button">Deep Embedding</a></li>
+                  <li><a href="#" class="button" id='model-button'>LDA</a></li>
+                  <li><a href="#" class="button" id='model-button'>K-Means</a></li>
+                  <li><a href="#" class="button" id='model-button'>Deep Embedding</a></li>
                 </ul>
                 <p id='hbar-description'>Topic Keywords based on LDA</p>
             </center>
@@ -89,7 +89,6 @@
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
                 </div>
-                <center><svg id='scatter_legend' style="margin-top: 20px"></svg></center>
             </div>
             <div id='layout-table'>
                 <table id="jqGrid"></table>
@@ -139,7 +138,6 @@
         initializeScatterChar(lda_scatter_json, 'lda')
         initializeScatterChar(km_scatter_json, 'km')
         initializeScatterChar(dec_scatter_json, 'dec')
-        initializeScatterLegend(dec_scatter_json)
 
         lda_km_topic_map = document_table_json.lda_km_topic_map
         km_lda_topic_map = document_table_json.km_lda_topic_map
@@ -224,36 +222,6 @@
         hbars.exit().remove()
 
         hbars.selectAll('.domain').remove()
-
-    }
-
-    function initializeScatterLegend(scatterData) {
-
-        var cValue = d3.schemeCategory10.slice(0, topicCnt)
-
-        legendSvg = d3.select("#scatter_legend")
-            .attr("width", (100 * Math.round(topicCnt / 2)) + "px")
-            .attr("height", "40px")
-
-        // draw legend
-        var legend = legendSvg.selectAll(".legend")
-            .data(cValue)
-            .enter().append("g")
-            .attr("class", "legend")
-            .attr("transform", function (d, i) { return "translate(" + (Math.floor(i / 2) * 100) + "," + (i % 2 * 20) + ")"; });
-        // draw legend colored rectangles
-        legend.append("rect")
-            .attr("x", 5)
-            .attr("width", 18)
-            .attr("height", 18)
-            .style("fill", function (d, i) { return cValue[i] });
-        // draw legend text
-        legend.append("text")
-            .attr("x", 30)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "start")
-            .text(function (d, i) { return 'Topic' + (i + 1); })
 
     }
 
@@ -348,7 +316,7 @@
                 }
             });
 
-            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', '#FF000020')
+            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', 'rgba(225, 0, 0, .125)')
 
         }
 
@@ -365,26 +333,26 @@
 
         for (var i = 0; i < topicCnt; i++) {
             if (i === selectedTopic) {
-                d3.select('#topic_' + i + '_bar_' + method).style('background', '#FF000020')
+                d3.select('#topic_' + i + '_bar_' + method).style('background', 'rgba(225, 0, 0, .125)')
             } else {
                 d3.select('#topic_' + i + '_bar_' + method).style('background', '')
             }
 
             if (i === ldaTopic) {
-                d3.selectAll('.dot_' + i + '_lda').attr('r', 10)
+                d3.selectAll('.dot_' + i + '_lda').style("fill", '#CC2230')
                 lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').attr('r', 10)
+                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#CC2230')
                 })
                 lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 10)
+                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#CC2230')
                 })
             } else {
-                d3.selectAll('.dot_' + i + '_lda').attr('r', 4)
+                d3.selectAll('.dot_' + i + '_lda').style("fill", '#E6E6E6')
                 lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').attr('r', 4)
+                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#E6E6E6')
                 })
                 lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 4)
+                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#E6E6E6')
                 })
             }
         }
@@ -418,8 +386,8 @@
             colModel: colModel,
             viewrecords: true,
             width: 1170,
-            height: 570,
-            rowNum: 12,
+            height: 310,
+            rowNum: 8,
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
