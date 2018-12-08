@@ -51,26 +51,42 @@ text {
     fill: white;
 }
 
-#hbar_radio>li {
-    float: left;
-    display: inline-block;
-    padding: 0px;
-    list-style: none;
-    margin-top: 4px;
-    margin-bottom: 4px;
+.radioGroup {
+    width: 241px;
+    display: inline-flex;
+    border: 1px solid;
+    position: relative;
+    background-color: #0095FF;
+    color: #FFFFFF;
+    overflow: hidden;
+    border-radius: 0.4rem;
+    margin: 10px 0px 30px 0px;
 }
 
-#model-button {
-    border-radius: 0;
-    border-style: solid;
-    border-width: 1px;
-    cursor: pointer;
-    margin: 0 0 1.11111rem;
-    position: relative;
+.radioGroup>input[type="radio"] {
+    display: none;
+}
+
+.radioGroup>label {
+    width: 80px;
+    padding: 0.5rem;
+    display: block;
+    z-index: 2;
+    margin-bottom: 0;
     text-align: center;
-    padding: 6px;
-    background-color: #008CBA;
-    color: #FFFFFF;
+    box-shadow: 0px 0px 1px rgba(255, 255, 255, 0.3);
+}
+
+.indicator {
+    display: inline-flex;
+    position: absolute;
+    height: 100%;
+    width: 80px;
+    background-color: #3069BA;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    transition: all ease 0.5s;
 }
 
 a,
