@@ -79,15 +79,24 @@ def open_grid():
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
+	import pickle
+	from topic_modeling_three_models import load_topic_modeling
+
 	f = request.files['file']
 	fname = f.filename.split('.')[0]
 	fext = f.filename.split('.')[1]
+
 	if fext == 'csv':
 		df = pd.read_csv(f, index_col=0).reset_index(drop=True)
 		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
 	elif fext == 'tsv':
 		df = pd.read_csv(f, sep='\t', index_col=0).reset_index(drop=True)
 		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
+	elif fext == 'pkl':
+		saved_model = pickle.load(f)
+		lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
+
+		return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 	else:
 		df = pd.DataFrame(['Not Available'], columns=['Col'])
 
@@ -110,7 +119,6 @@ def prepare_model():
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']
 	cluster_K = request.form['k']
-	print(cluster_K)
 
 	return render_template('loading.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 
