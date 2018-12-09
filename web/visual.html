@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
+    <style></style>
 
     <script>window.$ = window.jQuery = require('jquery');</script>
     <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -46,6 +47,8 @@
             document.body.appendChild(form);
             form.submit();
         }
+
+        
     </script>
 </head>
 
@@ -60,12 +63,15 @@
         <div id='layout-hbar'>
             <center>
                 <h4>Choose Topic Cluster</h4>
-                <ul id='hbar_radio' style='width:100%' class="button-group">
-                  <li><a href="#" class="button">LDA</a></li>
-                  <li><a href="#" class="button">K-Means</a></li>
-                  <li><a href="#" class="button">Deep Embedding</a></li>
-                </ul>
-                <p id='hbar-description'>Topic Keywords based on LDA</p>
+                <div class="radioGroup">
+                    <input type='radio' name='models' id='lda_radio' checked='checked'>
+                    <label for='lda_radio'>LDA</label>
+                    <input type='radio' name='models' id='km_radio'>
+                    <label for='km_radio'>K-Means</label>
+                    <input type='radio' name='models' id='dec_radio'>
+                    <label for='dec_radio'>DEC</label>
+                    <span class="indicator"></span>
+                </div>
             </center>
             <div id="hbar_container"></div>
         </div>
@@ -89,7 +95,6 @@
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
                 </div>
-                <center><svg id='scatter_legend' style="margin-top: 20px"></svg></center>
             </div>
             <div id='layout-table'>
                 <table id="jqGrid"></table>
@@ -109,6 +114,7 @@
 
     var lda_km_topic_map, km_lda_topic_map
     var tableData
+    var nowSelectedTopic = 0
     var hbar_type = 'lda'
     var topicCnt = 0
 
@@ -139,7 +145,6 @@
         initializeScatterChar(lda_scatter_json, 'lda')
         initializeScatterChar(km_scatter_json, 'km')
         initializeScatterChar(dec_scatter_json, 'dec')
-        initializeScatterLegend(dec_scatter_json)
 
         lda_km_topic_map = document_table_json.lda_km_topic_map
         km_lda_topic_map = document_table_json.km_lda_topic_map
@@ -148,6 +153,21 @@
 
         tableData = document_table_json.rows
         initializeTable(tableData)
+
+        d3.select('.radioGroup').selectAll('input').on('click', function() {
+            left_position = {'lda_radio': ['lda', '0%'], 'km_radio': ['km', '33.3%'], 'dec_radio': ['dec', '66.6%']}
+            d3.select('.indicator').style('left', left_position[this.id][1])
+
+            if (nowSelectedTopic != left_position[this.id][0]) {
+                if (left_position[this.id][0] === 'lda') {
+                    handletMouseClick(nowSelectedTopic, 'lda')
+                } else if (left_position[this.id][0] === 'km') {
+                    handletMouseClick(lda_km_topic_map[nowSelectedTopic][0], 'km')
+                } else if (left_position[this.id][0] === 'dec') {
+                    handletMouseClick(lda_dec_topic_map[nowSelectedTopic][0], 'dec')
+                }
+            }
+        })
     });
 
     function initializeHBarChart(barData, max_width, topicSeq, method) {
@@ -227,36 +247,6 @@
 
     }
 
-    function initializeScatterLegend(scatterData) {
-
-        var cValue = d3.schemeCategory10.slice(0, topicCnt)
-
-        legendSvg = d3.select("#scatter_legend")
-            .attr("width", (100 * Math.round(topicCnt / 2)) + "px")
-            .attr("height", "40px")
-
-        // draw legend
-        var legend = legendSvg.selectAll(".legend")
-            .data(cValue)
-            .enter().append("g")
-            .attr("class", "legend")
-            .attr("transform", function (d, i) { return "translate(" + (Math.floor(i / 2) * 100) + "," + (i % 2 * 20) + ")"; });
-        // draw legend colored rectangles
-        legend.append("rect")
-            .attr("x", 5)
-            .attr("width", 18)
-            .attr("height", 18)
-            .style("fill", function (d, i) { return cValue[i] });
-        // draw legend text
-        legend.append("text")
-            .attr("x", 30)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "start")
-            .text(function (d, i) { return 'Topic' + (i + 1); })
-
-    }
-
     function initializeScatterChar(scatterData, method) {
         scatter_margin = 10
         var chart_size = $('#layout-scatter').width() / 3 - scatter_margin
@@ -326,15 +316,15 @@
         if (hbar_type != method) {
             hbar_type = method
 
+            left_position = {'lda': '0%', 'km': '33.3%', 'dec': '66.6%'}
+            d3.select('.indicator').style('left', left_position[method])
+
             hbarCanvas.selectAll('svg').remove()
             if (method === 'lda') {
-                d3.select('#hbar-description').html('Topic Keywords based on LDA')
                 data = lda_hbar_json
             } else if (method === 'km') {
-                d3.select('#hbar-description').html('Topic Keywords based on K-Means')
                 data = km_hbar_json
             } else if (method === 'dec') {
-                d3.select('#hbar-description').html('Topic Keywords based on Deep Embedding')
                 data = dec_hbar_json
             }
 
@@ -348,7 +338,7 @@
                 }
             });
 
-            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', '#FF000020')
+            d3.select('#topic_' + selectedTopic + '_bar_' + method).style('background', 'rgba(225, 0, 0, .125)')
 
         }
 
@@ -360,31 +350,32 @@
             ldaTopic = selectedTopic
         }
 
+        nowSelectedTopic = ldaTopic
         kmTopic = lda_km_topic_map[ldaTopic]
         decTopic = lda_dec_topic_map[ldaTopic]
 
         for (var i = 0; i < topicCnt; i++) {
             if (i === selectedTopic) {
-                d3.select('#topic_' + i + '_bar_' + method).style('background', '#FF000020')
+                d3.select('#topic_' + i + '_bar_' + method).style('background', 'rgba(225, 0, 0, .125)')
             } else {
                 d3.select('#topic_' + i + '_bar_' + method).style('background', '')
             }
 
             if (i === ldaTopic) {
-                d3.selectAll('.dot_' + i + '_lda').attr('r', 10)
+                d3.selectAll('.dot_' + i + '_lda').style("fill", '#CC2230')
                 lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').attr('r', 10)
+                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#CC2230')
                 })
                 lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 10)
+                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#CC2230')
                 })
             } else {
-                d3.selectAll('.dot_' + i + '_lda').attr('r', 4)
+                d3.selectAll('.dot_' + i + '_lda').style("fill", '#E6E6E6')
                 lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').attr('r', 4)
+                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#E6E6E6')
                 })
                 lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').attr('r', 4)
+                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#E6E6E6')
                 })
             }
         }
@@ -418,8 +409,8 @@
             colModel: colModel,
             viewrecords: true,
             width: 1170,
-            height: 570,
-            rowNum: 12,
+            height: 310,
+            rowNum: 8,
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
