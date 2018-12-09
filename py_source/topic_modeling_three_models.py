@@ -67,15 +67,19 @@ def load_topic_modeling(saved_model):
 
     import sklearn
     from sklearn.preprocessing import normalize
+    from sklearn.feature_extraction.text import CountVectorizer
     
-    from topic_modeling_tsne import run_tsne
+    from topic_modeling_tsne import get_countvector
     from topic_modeling_vis import get_vis_data
     from topic_modeling_visualization import get_visualization_json
 
     print("Load Data & Preprocessing")
     documents = saved_model['documents']
     processed_docs = saved_model['processed_docs']
-    tsne_data, tsne_result = run_tsne(processed_docs)
+    processed_docs = processed_docs.apply(lambda x: x[1:-1].replace("'", "").split(', '))
+
+    vect = CountVectorizer()
+    tsne_data = get_countvector(processed_docs)
 
     # LDA
     print("LDA")
@@ -86,15 +90,36 @@ def load_topic_modeling(saved_model):
         lda_labels = []
         for i in range(len(documents)):
             lda_labels.append(np.argmax([p for t, p in lda_result['topic_model'][lda_result['corpus'][i]]]))
-    elif len(lda_result) == 6:
-        lda_vis_data = pyLDAvis.prepare(**lda_result)
+    elif len(lda_result) == 5:
+        document_topic_counts = lda_result['document_topic_counts']
+        topic_word_counts = lda_result['topic_word_counts']
+        topic_counts = lda_result['topic_counts']
+        document_lengths = lda_result['document_lengths']
+        distinct_words = lda_result['distinct_words']
+        n_clusters = len(topic_counts)
+
+        topic_term_dists = np.array([topic_word_counts[i][k] for i in range(n_clusters) for k in list(distinct_words)]).reshape((n_clusters, len(distinct_words))) 
+        doc_topic_dists = pd.DataFrame([d.values() for d in document_topic_counts]).fillna(0).values
+        doc_lengths = np.array(document_lengths)
+        vocab = list(distinct_words)
+        term_frequency = np.array([topic_word_counts[i][k] for i in range(n_clusters) for k in list(distinct_words)]).reshape((n_clusters, len(distinct_words))).sum(axis=0)
+
+        lda_data = {
+            'topic_term_dists':topic_term_dists,
+            'doc_topic_dists':doc_topic_dists,
+            'doc_lengths':doc_lengths,
+            'vocab':vocab,
+            'term_frequency':term_frequency
+        }
+
+        lda_vis_data = pyLDAvis.prepare(**lda_data)
         lda_labels = []
         for i in range(len(documents)):
-            lda_labels.append(np.argmax(lda_result['doc_topic_dists'][i]))
+            lda_labels.append(np.argmax(doc_topic_dists[i]))
 
     # K-Means
     print("K-Means")
-    
+
     kmeans_result = saved_model['kmeans_result']
     if type(kmeans_result) == sklearn.cluster.k_means_.KMeans:
         kmeans_centers = kmeans_result.cluster_centers_
@@ -115,4 +140,8 @@ def load_topic_modeling(saved_model):
     dec_vis_data = get_vis_data(tsne_data, processed_docs, x_data.groupby('y').mean().reset_index().values[:, 1:], dec_labels)
 
     ## Visualization
-    return get_visualization_json(len(np.unique(lda_labels)), documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, kmeans_labels, dec_vis_data, dec_labels)
+    import umap
+    umap_data = umap.UMAP().fit_transform(tsne_data)
+
+    ## Visualization
+    return get_visualization_json(len(np.unique(lda_labels)), documents, umap_data, lda_vis_data, lda_labels, km_vis_data, kmeans_labels, dec_vis_data, dec_labels)
