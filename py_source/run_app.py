@@ -94,9 +94,10 @@ def upload_file():
 		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
 	elif fext == 'pkl':
 		saved_model = pickle.load(f)
-		lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
+		with open(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), 'wb') as f:
+			pickle.dump(saved_model, f)
 
-		return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+		return render_template('loading.html', k = 0, fname = fname, fext = fext, target_column = '')
 	else:
 		df = pd.DataFrame(['Not Available'], columns=['Col'])
 
@@ -122,20 +123,6 @@ def prepare_model():
 
 	return render_template('loading.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 
-@app.route('/upload_model', methods=['POST'])
-def upload_model():
-	from topic_modeling_three_models import load_topic_modeling
-
-	f = request.files['file']
-	if f.filename.split('.')[1] != 'pkl':
-		return render_template('error.html', error='not available file format')
-
-	saved_model = pickle.load(f)
-
-	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
-
-	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
-
 @app.route('/run_model', methods=['POST'])
 def run_model():
 	from topic_modeling_three_models import run_topic_modeling
@@ -159,6 +146,21 @@ def run_model():
 	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
 		pickle.dump(outputs, f)
 	f.close()
+
+	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+
+@app.route('/load_uploaded_model', methods=['POST'])
+def load_uploaded_model():
+	from topic_modeling_three_models import load_topic_modeling
+
+	fname = request.form['fname']
+	fext = request.form['fext']
+
+	with open(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), 'rb') as f:
+		saved_model = pickle.load(f)
+	f.close()
+
+	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
 
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
