@@ -105,7 +105,7 @@ def upload_file():
 	col_width = [cw * 7 + 10 for cw in col_width]
 	if sum(col_width) > 1278:
 		col_width = [0 if cw > 1278 / len(col_width) else cw for cw in col_width]
-			
+
 	col_width = [(1278 - sum(col_width)) / len([cw for cw in col_width if cw == 0]) if cw == 0 else cw for cw in col_width]
 
 	json_data = collections.OrderedDict()
@@ -126,12 +126,12 @@ def prepare_model():
 @app.route('/run_model', methods=['POST'])
 def run_model():
 	from topic_modeling_three_models import run_topic_modeling
-	
+
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']
 	cluster_K = int(request.form['k']) if len(request.form['k']) > 0 else 8
-	
+
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(cluster_K = cluster_K, fname=fname, fext=fext, target_column_name=target_column_name)
 
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
@@ -166,7 +166,7 @@ def load_uploaded_model():
 
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
 def load_model(model_name):
-	
+
 	with open(os.path.join(os.getcwd(), 'model_output', '%s.pkl' % model_name), 'rb') as f:
 		outputs = pickle.load(f)
 	f.close()
@@ -179,14 +179,15 @@ def load_model(model_name):
 def load_detail():
 	barjson = json.loads(request.form['barjson'])
 	doctable = json.loads(request.form['doctable'])
+	dist = pd.DataFrame(doctable['rows']).groupby('topic_lda')['document'].count().to_json()
 
-	return render_template('detail.html', bar_json = barjson, document_table_json = doctable)
+	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist)
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
 	docdata = json.loads(request.form['data'])
 	target_text = docdata['rows'][int(request.form['idx'])]['document']
-	
+
 	nlp = spacy.load('en')
 	doc = nlp(target_text)
 	dochtml = displacy.render(doc, style='ent')

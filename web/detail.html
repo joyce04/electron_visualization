@@ -27,7 +27,10 @@
             <td rowspan="2" style="width: 30%; height: 50%; padding-top: 20px; padding-left: 20px">
                 <div id="hbar_container"></div>
             </td>
-            <td style="height: 20%; padding-top: 20px">Portion of topic</td>
+            <!-- <td style="height: 20%; padding-top: 20px">Portion of topic</td> -->
+            <td>
+              <div id="clus_distrib_chart" style="width:100%;"></div>
+            </td>
         </tr>
         <tr>
             <td rowspan="2" style="height: 60%; padding-top: 20px; padding-right: 20px">
@@ -59,6 +62,7 @@
 
     var bar_json = {{ bar_json | tojson }};
     var document_table_json = {{ document_table_json | tojson }};
+    var distrib_json = {{ distrib_json | tojson}};
 
     function get_entities(dataidx) {
         $.ajax({
@@ -84,6 +88,7 @@
 
         tableData = document_table_json.rows
         initializeTable(tableData)
+        initalizeDistributionChart(JSON.parse(distrib_json))
     })
 
     function initializeHBarChart(barData, max_width) {
@@ -157,7 +162,6 @@
         hbars.exit().remove()
 
         hbars.selectAll('.domain').remove()
-
     }
 
     function initializeTable(data) {
@@ -205,6 +209,23 @@
             {}, // delete options
             {} // search options - define multiple search
         );
+    }
+
+    function initalizeDistributionChart(data){
+      cluster_nums = Object.keys(data)
+      total_counts = Object.values(data).reduce((a,b)=>a+b)
+      cluster_data = []
+      for(let k in cluster_nums){
+        cluster_data.push({label:k, value: data[k]*100/total_counts})
+      }
+      console.log(cluster_data)
+
+      var dis_chart = d3.select("#clus_distrib_chart")
+
+      const percent = d3.scaleLinear()
+                        .domain([0, total_counts])
+                        .range([0, 100])
+
     }
 </script>
 </html>
