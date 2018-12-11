@@ -14,15 +14,11 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     from topic_modeling_vis import get_vis_data
     from topic_modeling_visualization import get_visualization_json
 
-    print("Start")
-
     ## Load Raw Data
-    print("Load Data & Preprocessing")
     documents, processed_docs = preprocess(fname, fext, target_column_name)
     tsne_data, tsne_result = run_tsne(processed_docs)
     
     ## LDA
-    print("LDA")
     topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency = run_lda(cluster_K, processed_docs)
 
     lda_data = {
@@ -38,16 +34,12 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     for i in range(len(documents)):
         lda_labels.append(np.argmax(lda_data['doc_topic_dists'][i]))
 
-    print(len(lda_labels), len(documents))
-
     ## K-Means
-    print("K-Means")
     kmeans_model = run_kmeans(cluster_K, tsne_data)
     km_labels = kmeans_model.labels_
     km_vis_data = get_vis_data(normalize(tsne_data, norm='l2'), processed_docs, kmeans_model.cluster_centers_, km_labels)
 
     ## DEC
-    print("DEC")
     dec_labels = run_dec(cluster_K, tsne_data)   
 
     x_data = pd.DataFrame(tsne_data)
@@ -65,7 +57,7 @@ def load_topic_modeling(saved_model):
     import pyLDAvis
     import pyLDAvis.gensim as genldavis
 
-    import sklearn
+    import sklearn.cluster.k_means_
     from sklearn.preprocessing import normalize
     from sklearn.feature_extraction.text import CountVectorizer
     
@@ -73,7 +65,7 @@ def load_topic_modeling(saved_model):
     from topic_modeling_vis import get_vis_data
     from topic_modeling_visualization import get_visualization_json
 
-    print("Load Data & Preprocessing")
+    # Load Data & Preprocessing
     documents = saved_model['documents']
     processed_docs = saved_model['processed_docs']
     processed_docs = processed_docs.apply(lambda x: x[1:-1].replace("'", "").split(', '))
@@ -82,8 +74,6 @@ def load_topic_modeling(saved_model):
     tsne_data = get_countvector(processed_docs)
 
     # LDA
-    print("LDA")
-
     lda_result = saved_model['lda_result']
     if len(lda_result) == 3:
         lda_vis_data = genldavis.prepare(**lda_result)
@@ -118,8 +108,6 @@ def load_topic_modeling(saved_model):
             lda_labels.append(np.argmax(doc_topic_dists[i]))
 
     # K-Means
-    print("K-Means")
-
     kmeans_result = saved_model['kmeans_result']
     if type(kmeans_result) == sklearn.cluster.k_means_.KMeans:
         kmeans_centers = kmeans_result.cluster_centers_
@@ -132,7 +120,6 @@ def load_topic_modeling(saved_model):
 
 
     # DEC
-    print("DEC")
     dec_labels = saved_model['dec_result']
 
     x_data = pd.DataFrame(tsne_data)
