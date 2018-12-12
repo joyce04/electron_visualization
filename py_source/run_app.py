@@ -195,6 +195,17 @@ def get_entities():
 
 	return json.dumps({ 'dochtml': dochtml }, ensure_ascii=False, indent='\t')
 
+def load_3d_json():
+	with open('./3djson.json', 'r') as f:
+		json3d = f.read()
+
+	return json.loads(json3d)
+
+@app.route('/3d_json_test', methods=['GET', 'POST'])
+def test():
+	json_str = load_3d_json()
+	return render_template('3d_json_test.html', data=json_str)
+
 if __name__ == '__main__':
     print("start")
     app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)
