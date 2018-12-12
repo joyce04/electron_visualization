@@ -97,7 +97,7 @@ def upload_file():
 		with open(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), 'wb') as f:
 			pickle.dump(saved_model, f)
 
-		return render_template('loading.html', k = 0, fname = fname, fext = fext, target_column = '')
+		return render_template('load.html', k = 0, fname = fname, fext = fext, target_column = '')
 	else:
 		df = pd.DataFrame(['Not Available'], columns=['Col'])
 
@@ -121,7 +121,7 @@ def prepare_model():
 	target_column_name = request.form['target_column']
 	cluster_K = request.form['k']
 
-	return render_template('loading.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
+	return render_template('load.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 
 @app.route('/run_model', methods=['POST'])
 def run_model():

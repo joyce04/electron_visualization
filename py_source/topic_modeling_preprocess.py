@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-import gensim
+import pyLDAvis.gensim as gensim
 import random
 import nltk
 from nltk.stem import WordNetLemmatizer, SnowballStemmer
@@ -35,5 +35,5 @@ def preprocess(fname, fext, target_column_name):
 
     ## Preprocess
     processed_docs = documents['document'].map(lemmatize_stemming)
-    
+
     return documents, processed_docs

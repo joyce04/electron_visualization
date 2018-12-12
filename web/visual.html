@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
-    <style></style>
 
     <script>window.$ = window.jQuery = require('jquery');</script>
     <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -15,9 +14,9 @@
     <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script>
-		$.jgrid.defaults.width = 1180;
-		$.jgrid.defaults.responsive = true;
-		$.jgrid.defaults.styleUI = 'Bootstrap';
+    		$.jgrid.defaults.width = 1180;
+    		$.jgrid.defaults.responsive = true;
+    		$.jgrid.defaults.styleUI = 'Bootstrap';
 
         function post_to_url(model_method) {
             if (model_method === "lda") {
@@ -202,7 +201,7 @@
         var hbars = subCanvas.selectAll('.bar')
             .data(barData, d => d['Term'])
 
-        enteredBars = hbars.enter().append("rect")
+        overallFreqBar = hbars.enter().append("rect")
             .attr("class", "bar")
             .attr("x", 10)
             .attr("y", function (d, i) {
@@ -212,7 +211,7 @@
             .attr("width", d => Number(d['Total']) / max_width * 200)
             .attr("fill", '#355C7D')
 
-        enteredBars2 = hbars.enter().append("rect")
+        topicFreqBar = hbars.enter().append("rect")
             .attr("class", "bar")
             .attr("x", 10)
             .attr("y", function (d, i) {
@@ -222,25 +221,23 @@
             .attr("width", d => Number(d['Freq']) / max_width * 200)
             .attr("fill", '#C06C84')
 
-        var mergedBars = enteredBars
-            .merge(hbars)
-            .transition().duration(1000)
-            .attr("x", 10)
-            .attr("y", function (d, i) {
-                return 3 + 19 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Total']) / max_width * 200)
+        overallFreqBar.merge(hbars)
+                      .transition().duration(1000)
+                      .attr("x", 10)
+                      .attr("y", function (d, i) {
+                          return 3 + 19 * i
+                      })
+                      .attr("height", y.bandwidth())
+                      .attr("width", d => Number(d['Total']) / max_width * 200)
 
-        var mergedBars2 = enteredBars2
-            .merge(hbars)
-            .transition().duration(1000)
-            .attr("x", 10)
-            .attr("y", function (d, i) {
-                return 3 + 19 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Freq']) / max_width * 200)
+        topicFreqBar.merge(hbars)
+                    .transition().duration(1000)
+                    .attr("x", 10)
+                    .attr("y", function (d, i) {
+                        return 3 + 19 * i
+                    })
+                    .attr("height", y.bandwidth())
+                    .attr("width", d => Number(d['Freq']) / max_width * 200)
 
         hbars.exit().remove()
 
