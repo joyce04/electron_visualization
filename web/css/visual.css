@@ -4,7 +4,7 @@
 }
 
 #layout-header {
-    margin-bottom: 20px;
+    /* margin-bottom: 20px; */
 }
 
 #layout-hbar {
@@ -60,7 +60,7 @@ text {
     color: #FFFFFF;
     overflow: hidden;
     border-radius: 0.4rem;
-    margin: 10px 0px 30px 0px;
+    margin: 0px 0px 10px 0px;
 }
 
 .radioGroup>input[type="radio"] {
