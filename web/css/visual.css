@@ -34,11 +34,12 @@
 }
 
 .layout-scatter {
-    border: 1px solid #bcbcbc;
+    border: 1px solid #555352;
 }
 
 text {
-    fill: black;
+    fill: #555352;
+    color: #555352;
     font: 11px sans-serif;
     text-anchor: middle;
 }
@@ -56,7 +57,7 @@ text {
     display: inline-flex;
     border: 1px solid;
     position: relative;
-    background-color: #0095FF;
+    background-color: #F8B195;
     color: #FFFFFF;
     overflow: hidden;
     border-radius: 0.4rem;
@@ -82,7 +83,7 @@ text {
     position: absolute;
     height: 100%;
     width: 80px;
-    background-color: #3069BA;
+    background-color: #F67280;
     top: 0;
     bottom: 0;
     z-index: 1;
