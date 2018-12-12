@@ -24,7 +24,7 @@
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <div id='layout-header'>
         <center>
-            <h1 id=title>Topic Modeling Results</h1>
+            <h1 id=title style="color:#555352">Topic Modeling Results</h1>
         </center>
     </div>
     <table style="width: 100%; height: 100%">
@@ -114,11 +114,11 @@
 
         var x = d3.scaleBand()
             .rangeRound([0, 400])
-            .padding(0.1)
+            // .padding(0.1)
 
         var y = d3.scaleBand()
             .rangeRound([0, 400])
-            .padding(0.1)
+            // .padding(0.1)
 
         y.domain(barData.map(d => d['Term']))
         x.domain(barData.map(d => d['Freq']))
@@ -245,7 +245,7 @@
         width: d3.select('#clus_distrib_chart').node().offsetWidth,
         height: 100,
         barHeight: 50,
-        colors: ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#A5C9E1', '#CC4A53']
+        colors: ['#F8B195', '#FC913A', '#F67280', '#E8175D', '#C06C84', '#A7226E', '#6C5B7B', '#355C7D']
       }
       const {f, margin, width, height, barHeight, colors } = config
       const w = width - margin.left - margin.right
@@ -270,6 +270,7 @@
         .attr('height', barHeight)
         .attr('width', d => xScale(d.value))
         .style('fill', (d, i) => colors[i])
+        .style("opacity", .7)
 
       // add values on bar
       dis_chart.selectAll('.text-value')

@@ -59,12 +59,12 @@
     <div id='container'>
         <div id='layout-header'>
             <center>
-                <h1><a href='/main'>Topic Modeling Results</a></h1>
+                <h1><a href='/main' style="color:#555352">Topic Modeling & Document Clustering Results</a></h1>
             </center>
         </div>
         <div id='layout-hbar'>
             <center>
-                <h4>Choose Topic Cluster</h4>
+                <h4 style="color:#555352">Choose Topic Cluster</h4>
                 <div class="radioGroup">
                     <input type='radio' name='models' id='lda_radio' checked='checked'>
                     <label for='lda_radio'>LDA</label>
@@ -81,19 +81,19 @@
             <div id='layout-scatter'>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('lda')"><h4 style="margin-top: 0px">LDA</h4></a>
+                        <a href="javascript:post_to_url('lda')"><h4 style="margin-top: 0px; color:#555352">LDA &rArr;</h4></a>
                         <svg class='layout-scatter' id="scatter_container_lda"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('km')"><h4 style="margin-top: 0px">K-Means</h4></a>
+                        <a href="javascript:post_to_url('km')"><h4 style="margin-top: 0px; color:#555352">K-Means &rArr;</h4></a>
                         <svg class='layout-scatter' id="scatter_container_km"></svg>
                     </center>
                 </div>
                 <div style="width: 33%; height: 100%; float: left">
                     <center>
-                        <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px">Deep Embedding</h4></a>
+                        <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px; color:#555352">Deep Embedding &rArr;</h4></a>
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
                 </div>
@@ -184,7 +184,6 @@
 
         var x = d3.scaleBand()
             .rangeRound([0, 400])
-            .padding(0.1)
 
         var y = d3.scaleBand()
             .rangeRound([0, 100])
@@ -211,7 +210,7 @@
             })
             .attr("height", y.bandwidth())
             .attr("width", d => Number(d['Total']) / max_width * 200)
-            .attr("fill", '#A5C9E1')
+            .attr("fill", '#355C7D')
 
         enteredBars2 = hbars.enter().append("rect")
             .attr("class", "bar")
@@ -221,7 +220,7 @@
             })
             .attr("height", y.bandwidth())
             .attr("width", d => Number(d['Freq']) / max_width * 200)
-            .attr("fill", '#CC4A53')
+            .attr("fill", '#C06C84')
 
         var mergedBars = enteredBars
             .merge(hbars)
@@ -246,7 +245,6 @@
         hbars.exit().remove()
 
         hbars.selectAll('.domain').remove()
-
     }
 
     function initializeScatterChar(scatterData, method) {
@@ -405,14 +403,15 @@
             });
         }
 
+        console.log(d3.select('#layout-hbar').node().offsetHeight - d3.select('#layout-scatter').node().offsetHeight)
         $("#jqGrid").jqGrid({
             data: data,
             datatype: "local",
             colModel: colModel,
             viewrecords: true,
             width: 1170,
-            height: 350,
-            rowNum: 10,
+            height: d3.select('#layout-hbar').node().offsetHeight - d3.select('#layout-scatter').node().offsetHeight - 140, //350
+            rowNum: 20,
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
