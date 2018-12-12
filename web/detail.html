@@ -22,34 +22,38 @@
 
 <body>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <table style="width: 100%; height: 100%; margin-top: 30px">
-        <tr>
-            <td rowspan="2" style="width: 30%; height: 50%; padding-top: 20px; padding-left: 20px">
-                <div id="hbar_container"></div>
-            </td>
-            <!-- <td style="height: 20%; padding-top: 20px">Portion of topic</td> -->
-            <td>
-              <div id="clus_distrib_chart" style="width:100%;"></div>
-            </td>
-        </tr>
-        <tr>
-            <td rowspan="2" style="height: 60%; padding-top: 20px; padding-right: 20px">
-                <div id='layout-table'>
-                    <table id="jqGrid"></table>
-                    <div id="jqGridPager"></div>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td rowspan="2" style="width: 30%; height: 50%; padding-top: 20px; padding-left: 20px">
-                <div id = 'entities_list'></div>
-            </td>
-        </tr>
-        <tr>
-            <td style="height: 20%; padding-top: 20px; padding-right: 20px">
-                <div id='entities_render'></div>
-            </td>
-        </tr>
+    <div id='layout-header'>
+        <center>
+            <h1 id=title>Topic Modeling Results</h1>
+        </center>
+    </div>
+    <table style="width: 100%; height: 100%">
+      <tr>
+          <td rowspan="2" style="width: 30%; height: 50%; padding-left: 20px">
+              <div id="hbar_container"></div>
+          </td>
+          <td>
+            <div id="clus_distrib_chart" style="width:100%;"></div>
+          </td>
+      </tr>
+      <tr>
+          <td rowspan="2" style="height: 60%; padding-top: 10px; padding-right: 20px">
+              <div id='layout-table'>
+                  <table id="jqGrid"></table>
+                  <div id="jqGridPager"></div>
+              </div>
+          </td>
+      </tr>
+      <tr>
+          <td rowspan="2" style="width: 30%; height: 50%; padding-top: 20px; padding-left: 20px">
+              <div id = 'entities_list'></div>
+          </td>
+      </tr>
+      <tr>
+          <td style="height: 20%; padding-top: 20px; padding-right: 20px">
+              <div id='entities_render'></div>
+          </td>
+      </tr>
     </table>
 </body>
 <script type="text/javascript">
@@ -60,6 +64,7 @@
         left: 40
     }
 
+    var type = {{ type_json | tojson}};
     var bar_json = {{ bar_json | tojson }};
     var document_table_json = {{ document_table_json | tojson }};
     var distrib_json = {{ distrib_json | tojson}};
@@ -87,9 +92,17 @@
         initializeHBarChart(bar_json['Topic1'].slice(0, 15), bar_json.max_width)
 
         tableData = document_table_json.rows
+        initializeTitle(type)
         initializeTable(tableData)
         initalizeDistributionChart(JSON.parse(distrib_json))
     })
+
+    function initializeTitle(type){
+      titles = {'lda':'Topic Modeling Result : LDA',
+                'km':'Document Clustering Result: K-Means',
+                'dec': 'Document Clustering Result: Deep Embedding Clustering'}
+      d3.select('#title').text(titles[type])
+    }
 
     function initializeHBarChart(barData, max_width) {
         subCanvas = hbarCanvas.append('svg')
@@ -225,11 +238,12 @@
         }
       })
 
+      console.log(d3.select('#clus_distrib_chart').node().offsetWidth)
       config = {
         f: d3.format('.2f'),
-        margin: {top: 20, right: 10, bottom: 20, left: 10},
-        width: 850,
-        height: 200,
+        margin: {top: 10, right: 20, bottom: 10, left: 0},
+        width: d3.select('#clus_distrib_chart').node().offsetWidth,
+        height: 150,
         barHeight: 50,
         colors: ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#A5C9E1', '#CC4A53']
       }

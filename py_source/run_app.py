@@ -179,9 +179,10 @@ def load_model(model_name):
 def load_detail():
 	barjson = json.loads(request.form['barjson'])
 	doctable = json.loads(request.form['doctable'])
+	type = json.loads(request.form['typejson'])
 	dist = pd.DataFrame(doctable['rows']).groupby('topic_lda')['document'].count().to_json()
 
-	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist)
+	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist, type_json = type)
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
