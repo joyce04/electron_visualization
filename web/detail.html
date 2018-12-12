@@ -37,7 +37,7 @@
           </td>
       </tr>
       <tr>
-          <td rowspan="2" style="height: 60%; padding-top: 10px; padding-right: 20px">
+          <td rowspan="2" style="height: 50%; padding-top: 10px; padding-right: 20px">
               <div id='layout-table'>
                   <table id="jqGrid"></table>
                   <div id="jqGridPager"></div>
@@ -197,8 +197,8 @@
             colModel: colModel,
             viewrecords: true,
             width: 1170,
-            height: 570,
-            rowNum: 15,
+            height: 450,
+            rowNum: 13,
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
@@ -238,12 +238,11 @@
         }
       })
 
-      console.log(d3.select('#clus_distrib_chart').node().offsetWidth)
       config = {
         f: d3.format('.2f'),
-        margin: {top: 10, right: 20, bottom: 10, left: 0},
+        margin: {top: 0, right: 20, bottom: 0, left: 0},
         width: d3.select('#clus_distrib_chart').node().offsetWidth,
-        height: 150,
+        height: 100,
         barHeight: 50,
         colors: ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#A5C9E1', '#CC4A53']
       }
