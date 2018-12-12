@@ -50,7 +50,7 @@
           </td>
       </tr>
       <tr>
-          <td style="height: 20%; padding-top: 20px; padding-right: 20px">
+          <td style="height: 20%; padding-top: 10px; padding-bottom: 20px; padding-right: 20px">
               <div id='entities_render'></div>
           </td>
       </tr>
@@ -233,7 +233,8 @@
         return {
           value : data[d],
           cumulative : cumulative - data[d],
-          label : 'cluster: '+ d,
+          cluster_num: parseInt(d)+1,
+          label : 'cluster: '+ (parseInt(d)+1),
           percent: data[d]*100/total_counts,
         }
       })
@@ -263,7 +264,7 @@
       dis_chart.selectAll('rect')
         .data(cluster_data)
         .enter().append('rect')
-        .attr('class', 'rect-stacked')
+        .attr('class', d=> 'rect-stacked_'+d.cluster_num)
         .attr('x', d => xScale(d.cumulative))
         .attr('y', h / 2 - halfBarHeight)
         .attr('height', barHeight)
