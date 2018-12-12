@@ -32,6 +32,11 @@
             form.setAttribute("method", "POST");
             form.setAttribute("action", "/detail");
 
+            var typejsonField = document.createElement("input");
+            typejsonField.setAttribute("name", "typejson");
+            typejsonField.setAttribute("value", JSON.stringify(model_method));
+            form.appendChild(typejsonField);
+
             var barjsonField = document.createElement("input");
             barjsonField.setAttribute("type", "hidden");
             barjsonField.setAttribute("name", "barjson");
@@ -48,7 +53,7 @@
             form.submit();
         }
 
-        
+
     </script>
 </head>
 
