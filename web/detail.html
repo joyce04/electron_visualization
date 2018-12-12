@@ -19,7 +19,6 @@
 		$.jgrid.defaults.styleUI = 'Bootstrap';
     </script>
 </head>
-
 <body>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <div id='layout-header'>
@@ -105,20 +104,21 @@
     }
 
     function initializeHBarChart(barData, max_width) {
+      hbar_width = '400px'
+      hbar_hegith = '200px'
         subCanvas = hbarCanvas.append('svg')
             .attr("id", 'bar')
-            .attr('height', '400px')
-            .attr('width', '400px')
+            .attr('height', hbar_hegith)
+            .attr('width', hbar_width)
             .append("g")
             .attr("transform", "translate(" + (margin.left + 20) + ", 0)")
 
         var x = d3.scaleBand()
-            .rangeRound([0, 400])
-            // .padding(0.1)
+            .rangeRound([0, hbar_width])
 
         var y = d3.scaleBand()
             .rangeRound([0, 400])
-            // .padding(0.1)
+            .padding(0.1)
 
         y.domain(barData.map(d => d['Term']))
         x.domain(barData.map(d => d['Freq']))

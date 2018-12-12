@@ -1,5 +1,4 @@
 <html>
-
 <head>
     <meta charset="utf-8">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
@@ -36,8 +35,8 @@
             var fileInput = document.querySelector(".input-file");
             var upload_button = document.querySelector(".input-file-trigger");
             var the_return = document.querySelector(".file-return");
-            var run_button = document.querySelector(".run-button-container")
-            var run_button2 = document.querySelector(".run-button-trigger")
+            var run_button = document.querySelector(".run-button")
+            // var run_button2 = document.querySelector(".run-button-trigger")
 
             upload_button.addEventListener("click", function (event) {
                 fileInput.focus();
@@ -51,9 +50,9 @@
                 document.getElementById("run_model_form").submit();
             })
 
-            run_button2.addEventListener("click", function (event) {
-                document.getElementById("run_model_form").submit();
-            })
+            // run_button2.addEventListener("click", function (event) {
+            //     document.getElementById("run_model_form").submit();
+            // })
 
         }, false);
     </script>
@@ -147,14 +146,14 @@
 
 <body>
     <table style="width: 100%; height: 100%;">
-        <tr style="height: 20%">
-            <td style="width: 30%; text-align: center;"></td>
-            <td style="width: 60%; text-align: center;"></td>
+        <tr style="height: 10%">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center;"></td>
             <td style="width: 10%; text-align: center;"></td>
         </tr>
         <tr style="height: 60%">
-            <td style="width: 30%; text-align: center;"></td>
-            <td style="width: 60%; text-align: center; background: rgba(225, 225, 225, .8)">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center; background: rgba(225, 225, 225, .8)">
                 <div style="height: 100%; overflow-y: scroll">
                     <table style="width: 100%; height: 100%;">
                         <tr style=" height: 15%">
@@ -190,9 +189,7 @@
                                                     <select id='target_column' name="target_column" class='model-target-selection'></select>
                                                 </td>
                                                 <td>
-                                                    <div class='run-button-container'>
-                                                        <label tabindex="0" class="run-button-trigger">Run Model...</label>
-                                                    </div>
+                                                    <button class='run-button' style="width:100%;">Run Model...</button>
                                                 </td>
                                             </tr>
                                         </table>
@@ -213,9 +210,9 @@
             </td>
             <td style="width: 10%; text-align: center;"></td>
         </tr>
-        <tr style="height: 20%">
-            <td style="width: 30%; text-align: center;"></td>
-            <td style="width: 60%; text-align: center;"></td>
+        <tr style="height: 10%">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center;"></td>
             <td style="width: 10%; text-align: center;"></td>
         </tr>
     </table>

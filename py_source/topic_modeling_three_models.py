@@ -10,14 +10,14 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     from topic_modeling_tsne import run_tsne
     from topic_modeling_lda import run_lda
     from topic_modeling_kmeans import run_kmeans
-    from topic_modeling_dec import run_dec
+    from dec import run_dec
     from topic_modeling_vis import get_vis_data
     from topic_modeling_visualization import get_visualization_json
 
     ## Load Raw Data
     documents, processed_docs = preprocess(fname, fext, target_column_name)
     tsne_data, tsne_result = run_tsne(processed_docs)
-    
+
     ## LDA
     topic_term_dists, doc_topic_dists, doc_lengths, vocab, term_frequency = run_lda(cluster_K, processed_docs)
 
@@ -40,7 +40,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     km_vis_data = get_vis_data(normalize(tsne_data, norm='l2'), processed_docs, kmeans_model.cluster_centers_, km_labels)
 
     ## DEC
-    dec_labels = run_dec(cluster_K, tsne_data)   
+    dec_labels = run_dec(cluster_K, tsne_data)
 
     x_data = pd.DataFrame(tsne_data)
     x_data['y'] = dec_labels
@@ -60,7 +60,7 @@ def load_topic_modeling(saved_model):
     import sklearn.cluster.k_means_
     from sklearn.preprocessing import normalize
     from sklearn.feature_extraction.text import CountVectorizer
-    
+
     from topic_modeling_tsne import get_countvector
     from topic_modeling_vis import get_vis_data
     from topic_modeling_visualization import get_visualization_json
@@ -88,7 +88,7 @@ def load_topic_modeling(saved_model):
         distinct_words = lda_result['distinct_words']
         n_clusters = len(topic_counts)
 
-        topic_term_dists = np.array([topic_word_counts[i][k] for i in range(n_clusters) for k in list(distinct_words)]).reshape((n_clusters, len(distinct_words))) 
+        topic_term_dists = np.array([topic_word_counts[i][k] for i in range(n_clusters) for k in list(distinct_words)]).reshape((n_clusters, len(distinct_words)))
         doc_topic_dists = pd.DataFrame([d.values() for d in document_topic_counts]).fillna(0).values
         doc_lengths = np.array(document_lengths)
         vocab = list(distinct_words)
