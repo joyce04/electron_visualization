@@ -28,15 +28,24 @@
     </div>
     <table style="width: 100%; height: 100%">
       <tr>
-          <td rowspan="2" style="width: 30%; height: 50%; padding-left: 20px">
-              <div id="hbar_container"></div>
-          </td>
-          <td>
+          <td valing="bottom"></td>
+          <td style="width: 70%">
             <div id="clus_distrib_chart" style="width:100%;"></div>
           </td>
       </tr>
       <tr>
-          <td rowspan="2" style="height: 50%; padding-top: 10px; padding-right: 20px">
+        <td valign="top">
+            <div id="hbar_container" style="padding-left:10px"></div>
+            <div id="hbar_exp" style="padding-left:10px">
+              <svg width="400px" height="100px">
+                <rect x="90" y="0" width="20" height="20" fill="#C06C84"/>
+                <text x="200" y="15" font-size="14px" width="60px" height="40" fill="#555352">Frequency in the selected topic</text>
+                <rect x="90" y="30" width="20" height="20" fill="#355C7D" />
+                <text x="195" y="45" font-size="14px" width="60px" height="40" fill="#555352">Frequency in total document</text>
+              </svg>
+            </div>
+        </td>
+          <td style="height: 50%; padding-top: 10px; padding-right: 20px">
               <div id='layout-table'>
                   <table id="jqGrid"></table>
                   <div id="jqGridPager"></div>
@@ -103,78 +112,90 @@
       d3.select('#title').text(titles[type])
     }
 
+    function initalizeHBarExpl(){
+      expCanvas = d3.select("#hbar_exp").append('svg')
+                                        .attr('height', 300)
+                                        .attr('width', 300)
+                                        .append("g")
+                                        .attr("transform", "translate(" + (90) + ", 20)")
+      expCanvas.append("rect")
+        .attr("x", 0)
+        .attr("y", 30)
+        .attr("height", 30)
+        .attr("width", 30)
+        .attr("fill", '#355C7D')
+    }
+
     function initializeHBarChart(barData, max_width) {
       hbar_width = '400px'
-      hbar_hegith = '200px'
-        subCanvas = hbarCanvas.append('svg')
-            .attr("id", 'bar')
-            .attr('height', hbar_hegith)
-            .attr('width', hbar_width)
-            .append("g")
-            .attr("transform", "translate(" + (margin.left + 20) + ", 0)")
+      hbar_hegith = '430px'
+      subCanvas = hbarCanvas.append('svg')
+          .attr("id", 'bar')
+          .attr('height', hbar_hegith)
+          .attr('width', hbar_width)
+          .append("g")
+          .attr("transform", "translate(" + (90) + ", 20)")
 
-        var x = d3.scaleBand()
-            .rangeRound([0, hbar_width])
+      var x = d3.scaleBand()
+          .rangeRound([0, hbar_width])
 
-        var y = d3.scaleBand()
-            .rangeRound([0, 400])
-            .padding(0.1)
+      var y = d3.scaleBand()
+          .rangeRound([0, 400])
+          .padding(0.1)
 
-        y.domain(barData.map(d => d['Term']))
-        x.domain(barData.map(d => d['Freq']))
+      y.domain(barData.map(d => d['Term']))
+      x.domain(barData.map(d => d['Freq']))
 
-        subCanvas.append('g')
-            .call(d3.axisLeft(y).tickSize(0))
-            .call(subCanvas => subCanvas.select('.domain').remove())
-            .selectAll('text')
-            .style("text-anchor", "end")
+      subCanvas.append('g')
+          .call(d3.axisLeft(y).tickSize(0))
+          .call(subCanvas => subCanvas.select('.domain').remove())
+          .selectAll('text')
+          .style("text-anchor", "end")
 
-        var hbars = subCanvas.selectAll('.bar')
-            .data(barData, d => d['Term'])
+      var hbars = subCanvas.selectAll('.bar')
+          .data(barData, d => d['Term'])
 
-        enteredBars = hbars.enter().append("rect")
-            .attr("class", "bar")
-            .attr("x", 0)
-            .attr("y", function (d, i) {
-                return 3 + 26 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Total']) / max_width * 400)
-            .attr("fill", '#A5C9E1')
+      overallFreqBars = hbars.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("y", function (d, i) {
+              return 3 + 26 * i
+          })
+          .attr("height", y.bandwidth())
+          .attr("width", d => Number(d['Total']) / max_width * 400)
+          .attr("fill", '#355C7D')
 
-        enteredBars2 = hbars.enter().append("rect")
-            .attr("class", "bar")
-            .attr("x", 0)
-            .attr("y", function (d, i) {
-                return 3 + 26 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Freq']) / max_width * 400)
-            .attr("fill", '#CC4A53')
+      clustFreqBars = hbars.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("y", function (d, i) {
+              return 3 + 26 * i
+          })
+          .attr("height", y.bandwidth())
+          .attr("width", d => Number(d['Freq']) / max_width * 400)
+          .attr("fill", '#C06C84')
 
-        var mergedBars = enteredBars
-            .merge(hbars)
-            .transition().duration(1000)
-            .attr("x", 0)
-            .attr("y", function (d, i) {
-                return 3 + 26 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Total']) / max_width * 400)
+      overallFreqBars.merge(hbars)
+                    .transition().duration(1000)
+                    .attr("x", 0)
+                    .attr("y", function (d, i) {
+                        return 3 + 26 * i
+                    })
+                    .attr("height", y.bandwidth())
+                    .attr("width", d => Number(d['Total']) / max_width * 400)
 
-        var mergedBars2 = enteredBars2
-            .merge(hbars)
-            .transition().duration(1000)
-            .attr("x", 0)
-            .attr("y", function (d, i) {
-                return 3 + 26 * i
-            })
-            .attr("height", y.bandwidth())
-            .attr("width", d => Number(d['Freq']) / max_width * 400)
+      clustFreqBars.merge(hbars)
+                  .transition().duration(1000)
+                  .attr("x", 0)
+                  .attr("y", function (d, i) {
+                      return 3 + 26 * i
+                  })
+                  .attr("height", y.bandwidth())
+                  .attr("width", d => Number(d['Freq']) / max_width * 400)
 
-        hbars.exit().remove()
+      hbars.exit().remove()
 
-        hbars.selectAll('.domain').remove()
+      hbars.selectAll('.domain').remove()
     }
 
     function initializeTable(data) {
@@ -302,6 +323,13 @@
         .attr('y', (h / 2) + (halfBarHeight * 1.1) + 20)
         .style('fill', (d, i) => colors[i])
         .text(d => d.label)
+
+      // click event handler
+      dis_chart.selectAll('rect').on('click', function(){
+        selectedTopic = d3.select(this)
+        console.log(selectedTopic)
+        selectedTopic.style("opacity", 1)
+      })
     }
 </script>
 </html>

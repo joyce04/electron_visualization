@@ -1,7 +1,7 @@
 {
-  "name": "football_vis",
+  "name": "visualization",
   "version": "1.0.0",
-  "description": "An Electron Application with Python Flask and D3 to visualize football data",
+  "description": "An Electron Application with Python Flask and D3 to visualize Document Clustering and Topic Modeling",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
