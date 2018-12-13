@@ -16,7 +16,7 @@
 
 <body>
 	{% if fext == 'pkl' %}
-		<form id="run_model_form" action='/load_uploaded_model' method='post'>
+		<form id="run_model_form" action='/import_model' method='post'>
 			<input type="hidden" name="fname" value="{{ fname }}" />
 			<input type="hidden" name="fext" value="{{ fext }}" />
 		</form>
