@@ -7,9 +7,12 @@ import collections
 import os
 import pickle
 import spacy
+
 from spacy import displacy
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from topic_modeling import run_topic_modeling
+from topic_modeling import load_topic_modeling
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
@@ -80,7 +83,6 @@ def open_grid():
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
 	import pickle
-	from topic_modeling_three_models import load_topic_modeling
 
 	f = request.files['file']
 	fname = f.filename.split('.')[0]
@@ -125,8 +127,6 @@ def prepare_model():
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
-	from topic_modeling_three_models import run_topic_modeling
-
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']
@@ -151,7 +151,6 @@ def run_model():
 
 @app.route('/load_uploaded_model', methods=['POST'])
 def load_uploaded_model():
-	from topic_modeling_three_models import load_topic_modeling
 
 	fname = request.form['fname']
 	fext = request.form['fext']

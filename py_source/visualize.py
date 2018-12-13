@@ -3,6 +3,19 @@ import numpy as np
 import os
 import json
 import collections
+from kmeans_to_pyLDAvis import kmeans_to_prepared_data  
+
+def get_vis_data(X, processed_docs, centers, labels):
+    vis_data = kmeans_to_prepared_data(
+        X,
+        list(set(np.sum(processed_docs.values))),
+        centers,
+        labels,
+        n_printed_words = 10,
+        radius = 5
+    )
+
+    return vis_data
 
 def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, km_labels, dec_vis_data, dec_labels):
 

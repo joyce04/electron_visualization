@@ -34,7 +34,7 @@ def get_variables(K, processed_docs):
 
         return V, D, document_topic_counts, topic_word_counts, topic_counts, document_lengths, distinct_words
            
-def run_lda(n_clusters, processed_docs, itercnt=3):
+def run(n_clusters, processed_docs, itercnt=3):
     def p_topic_given_document(topic, d, n_clusters, alpha=0.1):
         # 문서 d의 모든 단어 가운데 topic에 속하는
         # 단어의 비율 (alpha를 더해 smoothing)
