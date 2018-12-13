@@ -12,7 +12,7 @@ function createWindow() {
         width: 1300,
         height: 950,
         // transparent: true, // transparent header bar
-        icon: __dirname + '/web/resource/icon.png',
+        // icon: __dirname + '/web/resource/icon.png',
         // fullscreen: true,
         // opacity:0.8,
         // darkTheme: true,
