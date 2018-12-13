@@ -11,8 +11,7 @@ import spacy
 from spacy import displacy
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from topic_modeling import run_topic_modeling
-from topic_modeling import load_topic_modeling
+from topic_modeling import run_topic_modeling, load_topic_modeling
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
@@ -126,7 +125,7 @@ def save_model_outputs(outputs, fname, cluster_K):
 
 	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
 		pickle.dump(outputs, f)
-	f.close()	
+	f.close()
 
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
@@ -147,7 +146,7 @@ def run_model():
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(cluster_K = cluster_K, fname=fname, fext=fext, target_column_name=target_column_name)
 
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
-    save_model_outputs(outputs, fname, cluster_K)
+	save_model_outputs(outputs, fname, cluster_K)
 
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
@@ -163,9 +162,9 @@ def import_model():
 
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
 
-    outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
+	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
 	save_model_outputs(outputs, fname, len(document_table_json['lda_km_topic_map']))
-    
+
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
