@@ -4,6 +4,7 @@ import os
 import pyLDAvis.gensim as gensim
 import random
 import nltk
+import gensim
 from nltk.stem import WordNetLemmatizer, SnowballStemmer
 
 def lemmatize_stemming(text):
