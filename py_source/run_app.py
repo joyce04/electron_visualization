@@ -116,6 +116,18 @@ def upload_file():
 
 	return render_template('main.html', recent = [], fname = fname, fext = fext, column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
 
+def save_model_outputs(outputs, fname, cluster_K):
+	if 'model_output' not in os.listdir():
+		os.mkdir('model_output')
+
+	todaystr = datetime.today().strftime("%Y%m%d")
+	existedResult = len([f for f in os.listdir('./model_output') if '%s_%d_%s' % (fname, cluster_K, todaystr) in f])
+	resultfname = '%s_%d_%s.pkl' % (fname, cluster_K, todaystr) if existedResult == 0 else '%s_%d_%s_%d.pkl' % (fname, cluster_K, todaystr, (existedResult+1))
+
+	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
+		pickle.dump(outputs, f)
+	f.close()	
+
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
 	fname = request.form['fname']
@@ -135,22 +147,12 @@ def run_model():
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(cluster_K = cluster_K, fname=fname, fext=fext, target_column_name=target_column_name)
 
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
-
-	if 'model_output' not in os.listdir():
-		os.mkdir('model_output')
-
-	todaystr = datetime.today().strftime("%Y%m%d")
-	existedResult = len([f for f in os.listdir('./model_output') if '%s_%d_%s' % (fname, cluster_K, todaystr) in f])
-	resultfname = '%s_%d_%s.pkl' % (fname, cluster_K, todaystr) if existedResult == 0 else '%s_%d_%s_%d.pkl' % (fname, cluster_K, todaystr, (existedResult+1))
-
-	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
-		pickle.dump(outputs, f)
-	f.close()
+    save_model_outputs(outputs, fname, cluster_K)
 
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
-@app.route('/load_uploaded_model', methods=['POST'])
-def load_uploaded_model():
+@app.route('/import_model', methods=['POST'])
+def import_model():
 
 	fname = request.form['fname']
 	fext = request.form['fext']
@@ -161,6 +163,9 @@ def load_uploaded_model():
 
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = load_topic_modeling(saved_model)
 
+    outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
+	save_model_outputs(outputs, fname, len(document_table_json['lda_km_topic_map']))
+    
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
@@ -193,17 +198,6 @@ def get_entities():
 	dochtml = displacy.render(doc, style='ent')
 
 	return json.dumps({ 'dochtml': dochtml }, ensure_ascii=False, indent='\t')
-
-def load_3d_json():
-	with open('./3djson.json', 'r') as f:
-		json3d = f.read()
-
-	return json.loads(json3d)
-
-@app.route('/3d_json_test', methods=['GET', 'POST'])
-def test():
-	json_str = load_3d_json()
-	return render_template('3d_json_test.html', data=json_str)
 
 if __name__ == '__main__':
     print("start")

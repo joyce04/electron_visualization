@@ -70,11 +70,21 @@ def load_topic_modeling(saved_model):
     # LDA
     lda_result = saved_model['lda_result']
     if len(lda_result) == 3:
+        # lda_result = {'topic_model': gensim.models.ldamodel.LdaModel, 
+        #               'corpus': list, 
+        #               'dictionary': gensim.corpora.dictionary.Dictionary
+        # }
         lda_vis_data = genldavis.prepare(**lda_result)
         lda_labels = []
         for i in range(len(documents)):
             lda_labels.append(np.argmax([p for t, p in lda_result['topic_model'][lda_result['corpus'][i]]]))
     elif len(lda_result) == 5:
+        # lda_result = {'document_topic_counts': list,
+        #               'topic_word_counts': list,
+        #               'topic_counts': list,
+        #               'document_lengths': list,
+        #               'distinct_words': set
+        # }
         document_topic_counts = lda_result['document_topic_counts']
         topic_word_counts = lda_result['topic_word_counts']
         topic_counts = lda_result['topic_counts']
