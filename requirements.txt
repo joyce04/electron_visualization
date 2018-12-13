@@ -8,5 +8,4 @@ numpy
 sklearn
 spacy
 nltk
-gensim
---pyLDAvis
+pyLDAvis
