@@ -183,14 +183,13 @@ def load_detail():
 	barjson = json.loads(request.form['barjson'])
 	doctable = json.loads(request.form['doctable'])
 	type = json.loads(request.form['typejson'])
-	dist = pd.DataFrame(doctable['rows']).groupby('topic_lda')['document'].count().to_json()
+	dist = pd.DataFrame(doctable['rows']).groupby('topic_'+type)['document'].count().to_json()
 
 	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist, type_json = type)
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
-	docdata = json.loads(request.form['data'])
-	target_text = docdata['rows'][int(request.form['idx'])]['document']
+	target_text = request.form['content']
 
 	nlp = spacy.load('en')
 	doc = nlp(target_text)
