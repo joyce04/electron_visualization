@@ -31,6 +31,9 @@
           <td valing="bottom"></td>
           <td style="width: 70%">
             <div id="clus_distrib_chart" style="width:100%;"></div>
+              <div>
+                <span class="indicator" style="width: 0px; height: 0px;"></span>
+            </div>
           </td>
       </tr>
       <tr>
@@ -291,13 +294,13 @@
         .attr('height', barHeight)
         .attr('width', d => xScale(d.value))
         .style('fill', (d, i) => colors[i])
-        .style("opacity", .7)
+        .style("opacity", .8)
 
       // add values on bar
       dis_chart.selectAll('.text-value')
         .data(cluster_data)
         .enter().append('text')
-        .attr('class', 'text-value')
+        .attr('class', d=> 'text-value_'+d.cluster_num)
         .attr('text-anchor', 'middle')
         .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
         .attr('y', (h / 2) + 5)
@@ -307,7 +310,7 @@
       dis_chart.selectAll('.text-percent')
         .data(cluster_data)
         .enter().append('text')
-        .attr('class', 'text-percent')
+        .attr('class', d => 'text-percent_'+d.cluster_num)
         .attr('text-anchor', 'middle')
         .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
         .attr('y', (h / 2) - (halfBarHeight * 1.1))
@@ -317,18 +320,32 @@
       dis_chart.selectAll('.text-label')
         .data(cluster_data)
         .enter().append('text')
-        .attr('class', 'text-label')
+        .attr('class', d => 'text-label_'+d.cluster_num)
         .attr('text-anchor', 'middle')
         .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
         .attr('y', (h / 2) + (halfBarHeight * 1.1) + 20)
         .style('fill', (d, i) => colors[i])
         .text(d => d.label)
+      var indicator = d3.select('.indicator')
+                        .style('height', h+'px')
+                        .style('top', (h / 2) + (halfBarHeight * 1.1)+'px')
+                        .style('opacity', 0.2)
+                        .style('width', d3.select('rect').attr('width')+'px')
+      var indicat_origin_x = parseInt(d3.select('#hbar_container').node().offsetWidth)
+      var indicat_origin_y = indicator.attr('y')
 
       // click event handler
+      var move_indicator = (d)=>{
+        selectedTopic = d3.select('.rect-stacked_'+ d3.select(d).attr('class').split('_')[1])
+        d3.select('.indicator').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
+                                .style('width', (parseInt(selectedTopic.attr('width'))+2)+'px')
+      }
+
       dis_chart.selectAll('rect').on('click', function(){
-        selectedTopic = d3.select(this)
-        console.log(selectedTopic)
-        selectedTopic.style("opacity", 1)
+        move_indicator(this)
+      })
+      dis_chart.selectAll('text').on('click', function(){
+        move_indicator(this)
       })
     }
 </script>
