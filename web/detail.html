@@ -79,12 +79,13 @@
     var bar_json = {{ bar_json | tojson }};
     var document_table_json = {{ document_table_json | tojson }};
     var distrib_json = {{ distrib_json | tojson}};
+    var column_type = 'topic_'+type
 
-    function get_entities(dataidx) {
+    function get_entities(text) {
         $.ajax({
             url: '/entities',
             type: 'POST',
-            data: { idx: dataidx, data: JSON.stringify(document_table_json) },
+            data: {'content':text},
             success: function(res) {
                 dochtml = JSON.parse(res).dochtml
                 $('#entities_render').html(dochtml)
@@ -104,7 +105,7 @@
 
         tableData = document_table_json.rows
         initializeTitle(type)
-        initializeTable(tableData)
+        initializeTable(tableData.filter((d)=>{return d[column_type]==0}))
         initalizeDistributionChart(JSON.parse(distrib_json))
     })
 
@@ -227,10 +228,11 @@
             shrinktofit: true,
             pager: "#jqGridPager",
             onSelectRow: function(rowidx) {
-                pgidx = $(".ui-pg-input").val()
-                dataidx = $("#jqGrid").getGridParam("reccount") * (pgidx-1) + (rowidx * 1) - 1
-
-                get_entities(dataidx)
+                var rid = $("#jqGrid").jqGrid("getGridParam", "selrow")
+                if (rid) {
+                   var row = $("#jqGrid").jqGrid("getRowData", rid)
+                   get_entities(row.document)
+                 }
             }
         });
         $('#jqGrid').jqGrid('navGrid', "#jqGridPager", {
@@ -258,7 +260,7 @@
           value : data[d],
           cumulative : cumulative - data[d],
           cluster_num: parseInt(d)+1,
-          label : 'cluster: '+ (parseInt(d)+1),
+          label : 'cluster: '+ (parseInt(d)),
           percent: data[d]*100/total_counts,
         }
       })
@@ -336,9 +338,13 @@
 
       // click event handler
       var move_indicator = (d)=>{
-        selectedTopic = d3.select('.rect-stacked_'+ d3.select(d).attr('class').split('_')[1])
+        let topic_num = d3.select(d).attr('class').split('_')[1]
+        selectedTopic = d3.select('.rect-stacked_'+ topic_num)
         d3.select('.indicator').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
                                 .style('width', (parseInt(selectedTopic.attr('width'))+2)+'px')
+
+        change_hbar(topic_num)
+        change_table(topic_num)
       }
 
       dis_chart.selectAll('rect').on('click', function(){
@@ -347,6 +353,20 @@
       dis_chart.selectAll('text').on('click', function(){
         move_indicator(this)
       })
+    }
+
+    function change_hbar(topic_num){
+      hbarCanvas.selectAll('svg').remove()
+      initializeHBarChart(bar_json['Topic'+topic_num].slice(0, 15), bar_json.max_width)
+    }
+    function change_table(topic_num){
+      filteredData = tableData.filter((d)=>{return d[column_type]==parseInt(topic_num)-1})
+
+      $("#jqGrid").jqGrid('clearGridData')
+                  .jqGrid('setGridParam', {
+                      datatype: 'local',
+                      data: filteredData
+                  }).trigger("reloadGrid");
     }
 </script>
 </html>
