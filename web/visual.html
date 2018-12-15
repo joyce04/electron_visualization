@@ -299,7 +299,7 @@
             .data(scatterData)
             .enter().append("circle")
             .attr("class", function (d) { return 'dot_' + d.topic + '_' + method })
-            .attr("r", 4)
+            .attr("r", 2.5)
             .attr("cx", xMap)
             .attr("cy", yMap)
             .style("fill", function (d) { return cValue[d.topic]; })
