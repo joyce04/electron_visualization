@@ -28,24 +28,36 @@
     </div>
     <table style="width: 100%; height: 100%">
       <tr>
-          <td valing="bottom"></td>
+          <td style="text-align:center">
+            <div class="radioGroup" style="width:161px">
+                <input type='radio' id='keyword_radio' checked='checked'>
+                <label for='keyword_radio'> Keywords </label>
+                <input type='radio' id='entity_radio'>
+                <label for='entity_radio'> Entities </label>
+                <span id='menu_radio_ind' class="indicator"></span>
+            </div>
+          </td>
           <td style="width: 70%">
             <div id="clus_distrib_chart" style="width:100%;"></div>
               <div>
-                <span class="indicator" style="width: 0px; height: 0px;"></span>
+                <span id='distrib_ind' class="indicator" style="width: 0px; height: 0px;"></span>
             </div>
           </td>
       </tr>
       <tr>
         <td valign="top">
-            <div id="hbar_container" style="padding-left:10px"></div>
-            <div id="hbar_exp" style="padding-left:10px">
-              <svg width="400px" height="100px">
-                <rect x="90" y="0" width="20" height="20" fill="#C06C84"/>
-                <text x="200" y="15" font-size="14px" width="60px" height="40" fill="#555352">Frequency in the selected topic</text>
-                <rect x="90" y="30" width="20" height="20" fill="#355C7D" />
-                <text x="195" y="45" font-size="14px" width="60px" height="40" fill="#555352">Frequency in total document</text>
-              </svg>
+            <div id="keyword_div">
+              <div id="hbar_container" style="padding-left:10px"></div>
+              <div id="hbar_exp" style="padding-left:10px">
+                <svg width="400px" height="100px">
+                  <rect x="90" y="0" width="20" height="20" fill="#C06C84"/>
+                  <text x="200" y="15" font-size="14px" width="60px" height="40" fill="#555352">Frequency in the selected topic</text>
+                  <rect x="90" y="30" width="20" height="20" fill="#355C7D" />
+                  <text x="195" y="45" font-size="14px" width="60px" height="40" fill="#555352">Frequency in total document</text>
+                </svg>
+              </div>
+            </div>
+            <div id="entities_div">
             </div>
         </td>
           <td style="height: 50%; padding-top: 10px; padding-right: 20px">
@@ -81,16 +93,35 @@
     var distrib_json = {{ distrib_json | tojson}};
     var column_type = 'topic_'+type
 
-    function get_entities(text) {
+    function get_entity(text) {
         $.ajax({
-            url: '/entities',
+            url: '/entity',
             type: 'POST',
             data: {'content':text},
             success: function(res) {
                 dochtml = JSON.parse(res).dochtml
                 $('#entities_render').html(dochtml)
 
-                $('#entities_list').html($(dochtml).find("mark")[0])
+                // $('#entities_list').html($(dochtml).find("mark")[0])
+            },
+            error: function(error){
+                console.log(error);
+            }
+        })
+    }
+
+    function get_entities() {
+        $.ajax({
+            url: '/entities',
+            type: 'POST',
+            data: { data: JSON.stringify(document_table_json),
+                    type: type},
+            success: function(res) {
+                counts = JSON.parse(res).counts
+                console.log(counts)
+                // $('#entities_render').html(dochtml)
+
+                // $('#entities_list').html($(dochtml).find("mark")[0])
             },
             error: function(error){
                 console.log(error);
@@ -101,6 +132,8 @@
     var hbarCanvas = d3.select("#hbar_container").attr("width", "90%")
 
     $(document).ready(function() {
+        // get_entities()
+        initializeRadio()
         initializeHBarChart(bar_json['Topic1'].slice(0, 15), bar_json.max_width)
 
         tableData = document_table_json.rows
@@ -108,6 +141,21 @@
         initializeTable(tableData.filter((d)=>{return d[column_type]==0}))
         initalizeDistributionChart(JSON.parse(distrib_json))
     })
+
+    function initializeRadio(){
+      d3.select('.radioGroup').selectAll('input').on('click', function() {
+
+        if(d3.select(this).attr('id')=='keyword_radio'){
+          d3.select('#menu_radio_ind').style('left', '0%')
+          d3.select('#keyword_div').style('display', 'block')
+          d3.select('#entities_div').style('display', 'none')
+        } else {
+          d3.select('#menu_radio_ind').style('left', '50%')
+          d3.select('#keyword_div').style('display', 'none')
+          d3.select('#entities_div').style('display', 'block')
+        }
+      })
+    }
 
     function initializeTitle(type){
       titles = {'lda':'Topic Modeling Result : LDA',
@@ -231,7 +279,7 @@
                 var rid = $("#jqGrid").jqGrid("getGridParam", "selrow")
                 if (rid) {
                    var row = $("#jqGrid").jqGrid("getRowData", rid)
-                   get_entities(row.document)
+                   get_entity(row.document)
                  }
             }
         });
@@ -328,19 +376,19 @@
         .attr('y', (h / 2) + (halfBarHeight * 1.1) + 20)
         .style('fill', (d, i) => colors[i])
         .text(d => d.label)
-      var indicator = d3.select('.indicator')
+      var distrib_ind = d3.select('#distrib_ind')
                         .style('height', h+'px')
                         .style('top', (h / 2) + (halfBarHeight * 1.1)+'px')
                         .style('opacity', 0.2)
                         .style('width', d3.select('rect').attr('width')+'px')
       var indicat_origin_x = parseInt(d3.select('#hbar_container').node().offsetWidth)
-      var indicat_origin_y = indicator.attr('y')
+      var indicat_origin_y = distrib_ind.attr('y')
 
       // click event handler
       var move_indicator = (d)=>{
         let topic_num = d3.select(d).attr('class').split('_')[1]
         selectedTopic = d3.select('.rect-stacked_'+ topic_num)
-        d3.select('.indicator').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
+        d3.select('#distrib_ind').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
                                 .style('width', (parseInt(selectedTopic.attr('width'))+2)+'px')
 
         change_hbar(topic_num)
