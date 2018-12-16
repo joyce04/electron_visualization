@@ -189,6 +189,40 @@ def load_detail():
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
+	nlp = spacy.load('en')
+	max_len = 100000
+
+	type = 'topic_'+request.form['type']
+	docdata = json.loads(request.form['data'])
+	df_rows = pd.DataFrame(docdata['rows'])
+	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
+	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
+
+	ent_list = []
+	for ind, grp in df_rows.groupby(type):
+		cum_len = 0
+		start_ind = 0
+
+		for idx, row in grp.reset_index().iterrows():
+			cum_len += row.length
+			if cum_len >= max_len :
+				sub_text = grp.iloc[start_ind:idx]['document']
+				start_ind =idx
+				cum_len = 0
+				print(len(' '.join(sub_text.tolist())))
+				doc = nlp(' '.join(sub_text.tolist()))
+
+				for ent in doc.ents:
+					if len(ent.text) >2:
+						ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
+
+	ent_df = pd.DataFrame(ent_list).groupby(['cluster', 'label']).count()
+	json_data = collections.OrderedDict()
+	json_data['counts'] = ent_df.reset_index().to_dict(orient='records')
+	return json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', '')
+
+@app.route('/entity', methods=['POST'])
+def get_entity():
 	target_text = request.form['content']
 
 	nlp = spacy.load('en')
