@@ -10,6 +10,7 @@ a = Analysis(['../py_source/run_app_package_ver.py'], # relative to the location
              datas=[], 
              hiddenimports=[
                 'umap',
+                'en_core_web_sm',
                 'pkg_resources',
                 'cymem.cymem',
                 'cytoolz._signatures',
