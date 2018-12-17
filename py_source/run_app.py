@@ -209,7 +209,7 @@ def get_entities():
 				sub_text = grp.iloc[start_ind:idx]['document']
 				start_ind =idx
 				cum_len = 0
-				print(len(' '.join(sub_text.tolist())))
+				# print(len(' '.join(sub_text.tolist())))
 				doc = nlp(' '.join(sub_text.tolist()))
 
 				for ent in doc.ents:
