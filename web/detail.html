@@ -92,6 +92,7 @@
     var document_table_json = {{ document_table_json | tojson }};
     var distrib_json = {{ distrib_json | tojson}};
     var column_type = 'topic_'+type
+    var entities_count = {}
 
     function get_entity(text) {
         $.ajax({
@@ -119,6 +120,7 @@
             success: function(res) {
                 counts = JSON.parse(res).counts
                 console.log(counts)
+                initializeEntitiesCount(counts)
                 // $('#entities_render').html(dochtml)
 
                 // $('#entities_list').html($(dochtml).find("mark")[0])
@@ -132,7 +134,7 @@
     var hbarCanvas = d3.select("#hbar_container").attr("width", "90%")
 
     $(document).ready(function() {
-        // get_entities()
+        get_entities()
         initializeRadio()
         initializeHBarChart(bar_json['Topic1'].slice(0, 15), bar_json.max_width)
 
@@ -141,6 +143,10 @@
         initializeTable(tableData.filter((d)=>{return d[column_type]==0}))
         initalizeDistributionChart(JSON.parse(distrib_json))
     })
+
+    function initializeEntitiesCount(counts){
+
+    }
 
     function initializeRadio(){
       d3.select('.radioGroup').selectAll('input').on('click', function() {
