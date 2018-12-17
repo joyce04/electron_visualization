@@ -10,3 +10,4 @@ data_output/*.tsv
 **/mallet_top_sen.tsv
 **/.ipynb_checkpoints
 /temp_files
+/build

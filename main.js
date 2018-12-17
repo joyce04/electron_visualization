@@ -65,8 +65,11 @@ function addAppEventListeners() {
 // initialization and is ready to create browser mainWindow.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    // spawn server
-    subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+    // spawn server(dev)
+    // subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
+    
+    // spawn server(op)
+    subpy = require('child_process').spawn(__dirname + '/run_flask.exe');
 
     createWindow();
     addAppEventListeners();
