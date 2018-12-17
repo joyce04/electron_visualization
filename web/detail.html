@@ -46,7 +46,7 @@
       </tr>
       <tr>
         <td valign="top" rowspan="2">
-            <div id="keyword_div">
+            <div id="keyword_div" style="display=block">
               <div id="hbar_container" style="padding-left:10px"></div>
               <div id="hbar_exp" style="padding-left:10px">
                 <svg width="400px" height="100px">
@@ -57,7 +57,7 @@
                 </svg>
               </div>
             </div>
-            <div style="padding-left:100px">
+            <div id="entities_container" style="padding-left:100px; display=none">
               <div id="entities_div"></div>
             </div>
         </td>
@@ -89,7 +89,7 @@
     var distrib_json = {{ distrib_json | tojson}};
     var column_type = 'topic_'+type
     var selected_topic_num = 0
-    var entities_count = {}
+    var entities_count = []
 
     function get_entity(text) {
         $.ajax({
@@ -114,7 +114,7 @@
                     type: type},
             success: function(res) {
                 counts = JSON.parse(res).counts
-                console.log(counts)
+                // console.log(counts)
                 entities_count = counts
                 initializeEntitiesCount()
             },
@@ -147,7 +147,8 @@
                         'TIME':['#bfe1d9', 'Time'], 'WORK_OF_ART':['#f0d0ff', 'Titles of books, songs']}
 
     function initializeEntitiesCount(){
-      entities = entities_count.filter((d)=>{return d['cluster']==selected_topic_num})
+      entities = entities_count.filter((d)=>{return d['cluster']==selected_topic_num-1})
+      // console.log(entities)
 
       d3.select('#entities_div').selectAll('mark').remove()
       d3.select('#entities_div').selectAll('br').remove()
@@ -162,20 +163,21 @@
           d3.select('#entities_div').append('br')
           d3.select('#entities_div').append('br')
       }
-
     }
 
     function initializeRadio(){
+      d3.select('.entities_div').style('display', 'none')
+
       d3.select('.radioGroup').selectAll('input').on('click', function() {
 
         if(d3.select(this).attr('id')=='keyword_radio'){
           d3.select('#menu_radio_ind').style('left', '0%')
           d3.select('#keyword_div').style('display', 'block')
-          d3.select('#entities_div').style('display', 'none')
+          d3.select('#entities_container').style('display', 'none')
         } else {
           d3.select('#menu_radio_ind').style('left', '50%')
           d3.select('#keyword_div').style('display', 'none')
-          d3.select('#entities_div').style('display', 'block')
+          d3.select('#entities_container').style('display', 'block')
         }
       })
     }
