@@ -190,7 +190,7 @@ def load_detail():
 @app.route('/entities', methods=['POST'])
 def get_entities():
 	nlp = spacy.load('en')
-	max_len = 100000
+	max_len = 90000
 
 	type = 'topic_'+request.form['type']
 	docdata = json.loads(request.form['data'])

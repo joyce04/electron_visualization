@@ -45,7 +45,7 @@
           </td>
       </tr>
       <tr>
-        <td valign="top">
+        <td valign="top" rowspan="2">
             <div id="keyword_div">
               <div id="hbar_container" style="padding-left:10px"></div>
               <div id="hbar_exp" style="padding-left:10px">
@@ -57,10 +57,11 @@
                 </svg>
               </div>
             </div>
-            <div id="entities_div">
+            <div style="padding-left:100px">
+              <div id="entities_div"></div>
             </div>
         </td>
-          <td style="height: 50%; padding-top: 10px; padding-right: 20px">
+          <td style="height: 50%; padding-top: 20px; padding-right: 20px">
               <div id='layout-table'>
                   <table id="jqGrid"></table>
                   <div id="jqGridPager"></div>
@@ -68,14 +69,9 @@
           </td>
       </tr>
       <tr>
-          <td rowspan="2" style="width: 30%; height: 50%; padding-top: 20px; padding-left: 20px">
-              <div id = 'entities_list'></div>
-          </td>
-      </tr>
-      <tr>
-          <td style="height: 20%; padding-top: 10px; padding-bottom: 20px; padding-right: 20px">
-              <div id='entities_render'></div>
-          </td>
+        <td style="height: 20%; padding-top: 10px; padding-bottom: 20px; padding-right: 20px">
+            <div id='entities_render'></div>
+        </td>
       </tr>
     </table>
 </body>
@@ -92,6 +88,7 @@
     var document_table_json = {{ document_table_json | tojson }};
     var distrib_json = {{ distrib_json | tojson}};
     var column_type = 'topic_'+type
+    var selected_topic_num = 0
     var entities_count = {}
 
     function get_entity(text) {
@@ -102,8 +99,6 @@
             success: function(res) {
                 dochtml = JSON.parse(res).dochtml
                 $('#entities_render').html(dochtml)
-
-                // $('#entities_list').html($(dochtml).find("mark")[0])
             },
             error: function(error){
                 console.log(error);
@@ -120,10 +115,8 @@
             success: function(res) {
                 counts = JSON.parse(res).counts
                 console.log(counts)
-                initializeEntitiesCount(counts)
-                // $('#entities_render').html(dochtml)
-
-                // $('#entities_list').html($(dochtml).find("mark")[0])
+                entities_count = counts
+                initializeEntitiesCount()
             },
             error: function(error){
                 console.log(error);
@@ -143,8 +136,32 @@
         initializeTable(tableData.filter((d)=>{return d[column_type]==0}))
         initalizeDistributionChart(JSON.parse(distrib_json))
     })
+    const mark_colors = {'ORG':['#7aecec', 'Organization'], 'DATE':['#bfe1d9', 'Date'],
+                        'CARDINAL':['#e4e7d2', 'Numerals'], 'PERSON':['#aa9cfc', 'People'],
+                        'NORP':['#c887fb', 'Nation | Group'], 'GPE':['#feca74', 'Country | City'],
+                        'EVENT':['#ffeb80', 'Battles | Sports Events'], 'FAC': ['#ddd', 'Facility'],
+                        'LANGUAGE':['#ff8197', 'Language'], 'LAW':['#ff8197', 'Laws'],
+                        'LOC':['#ff9561', 'Locations'], 'MONEY':['#e4e7d2', 'Monetary values'],
+                        'ORDINAL':['#e4e7d2', 'Ordinal'], 'PERCENT':['#e4e7d2', '%'],
+                        'PRODUCT':['#bfeeb7', 'Objects'], 'QUANTITY':['#e4e7d2', 'Measurements'],
+                        'TIME':['#bfe1d9', 'Time'], 'WORK_OF_ART':['#f0d0ff', 'Titles of books, songs']}
 
-    function initializeEntitiesCount(counts){
+    function initializeEntitiesCount(){
+      entities = entities_count.filter((d)=>{return d['cluster']==selected_topic_num})
+
+      d3.select('#entities_div').selectAll('mark').remove()
+      d3.select('#entities_div').selectAll('br').remove()
+      for (i = 0; i < entities.length; i++) {
+          d3.select('#entities_div').append('mark')
+            .attr('class', 'mark')
+            .style('background', mark_colors[entities[i]['label']][0])
+            .text(entities[i]['text'])
+            .append('span')
+            .attr('class', 'mark_span')
+            .text(entities[i]['label'])
+          d3.select('#entities_div').append('br')
+          d3.select('#entities_div').append('br')
+      }
 
     }
 
@@ -258,7 +275,7 @@
 
     function initializeTable(data) {
         var columns = ['document', 'topic_lda', 'topic_km', 'topic_dec'];
-        var columnLabels = ['Document', 'Topic(lda)', 'Topic(KM)', 'Topic(DEC)'];
+        var columnLabels = ['Document', 'Topic(LDA)', 'Topic(KM)', 'Topic(DEC)'];
         var colw = [70, 10, 10, 10]
         var colModel = [];
 
@@ -397,8 +414,11 @@
         d3.select('#distrib_ind').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
                                 .style('width', (parseInt(selectedTopic.attr('width'))+2)+'px')
 
+        selected_topic_num = topic_num
         change_hbar(topic_num)
         change_table(topic_num)
+        initializeEntitiesCount()
+        d3.select('#entities_render').html("")
       }
 
       dis_chart.selectAll('rect').on('click', function(){
@@ -413,6 +433,7 @@
       hbarCanvas.selectAll('svg').remove()
       initializeHBarChart(bar_json['Topic'+topic_num].slice(0, 15), bar_json.max_width)
     }
+
     function change_table(topic_num){
       filteredData = tableData.filter((d)=>{return d[column_type]==parseInt(topic_num)-1})
 
