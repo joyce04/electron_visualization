@@ -189,6 +189,7 @@ def load_detail():
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
+	spacy.util.set_data_path('./py_source/nlp_data')
 	nlp = spacy.load('en')
 	max_len = 100000
 
@@ -225,6 +226,7 @@ def get_entities():
 def get_entity():
 	target_text = request.form['content']
 
+	spacy.util.set_data_path('./py_source/nlp_data')
 	nlp = spacy.load('en')
 	doc = nlp(target_text)
 	dochtml = displacy.render(doc, style='ent')
