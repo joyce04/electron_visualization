@@ -1,6 +1,28 @@
 const { app, session, BrowserWindow } = require('electron');
 const path = require('path');
 
+const EXEC_MODULE = 'run_flask'
+const PY_MODULE = 'run_app'
+const PY_FOLDER = 'py_source'
+
+const guessPackaged = () => {
+    if (process.platform === 'win32') {
+        return require('fs').existsSync(fullPath = path.join(__dirname, EXEC_MODULE + '.exe'))
+    } else {
+        return require('fs').existsSync(path.join(__dirname, EXEC_MODULE))
+    }
+}
+
+const getScriptPath = () => {
+    if (!guessPackaged()) {
+        return path.join(__dirname, PY_FOLDER, PY_MODULE + '.py')
+    }
+    if (process.platform === 'win32') {
+        return path.join(__dirname, EXEC_MODULE + '.exe')
+    }
+    return path.join(__dirname, EXEC_MODULE)
+}
+
 // Keep a global reference of the mainWindowdow object, if you don't, the mainWindowdow will
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
@@ -21,7 +43,7 @@ function createWindow() {
         show: false
     });
 
-    const ses = mainWindow.webContents.session.clearCache(function() {});
+    const ses = mainWindow.webContents.session.clearCache(function () { });
 
     // Load the index page
     mainWindow.loadFile('./web/init.html')
@@ -58,6 +80,7 @@ function addAppEventListeners() {
     app.on('quit', () => {
         // kill the python server on exit
         subpy.kill('SIGINT');
+        subpy = null;
     });
 }
 
@@ -65,11 +88,19 @@ function addAppEventListeners() {
 // initialization and is ready to create browser mainWindow.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
-    // spawn server(dev)
-    // subpy = require('child_process').spawn('python3', [__dirname + '/py_source/run_app.py']);
-    
-    // spawn server(op)
-    subpy = require('child_process').spawn(__dirname + '/run_flask.exe');
+    let script = getScriptPath()
+    console.log(script)
+
+    if (guessPackaged()) {
+        subpy = require('child_process').execFile(script)
+    } else {
+        subpy = require('child_process').spawn('python3', [script])
+    }
+
+    if (subpy != null) {
+        console.log('child process success on port 5000')
+        console.log('child process pid is ' + subpy.pid)
+    }
 
     createWindow();
     addAppEventListeners();
