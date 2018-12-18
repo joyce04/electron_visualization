@@ -17,6 +17,8 @@ a = Analysis(['../py_source/run_app_package_ver.py'], # relative to the location
                 'dill',
                 'murmurhash.mrmr',
                 'spacy',
+                'spacy.lang.en',
+                'spacy.displacy',
                 'spacy.attrs',
                 'spacy.compat',
                 'spacy.errors',
