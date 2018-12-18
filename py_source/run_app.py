@@ -7,7 +7,6 @@ import collections
 import os
 import pickle
 import spacy
-import en_core_web_sm
 
 from spacy import displacy
 from datetime import datetime
@@ -188,15 +187,10 @@ def load_detail():
 
 	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist, type_json = type)
 
-def get_nlp():
-	spacy_path = en_core_web_sm.__file__.split('__init__.py')[0]
-	nlp = spacy.load(['%s%s/' % (spacy_path, p) for p in os.listdir(spacy_path) if '__' not in p and 'en_core_web_sm' in p][0])
-	
-	return nlp
-
 @app.route('/entities', methods=['POST'])
 def get_entities():
-	nlp = get_nlp()
+	spacy.util.set_data_path('./py_source/nlp_data')
+	nlp = spacy.load('en')
 	max_len = 90000
 
 	type = 'topic_'+request.form['type']
@@ -232,7 +226,8 @@ def get_entities():
 def get_entity():
 	target_text = request.form['content']
 
-	nlp = get_nlp()
+	spacy.util.set_data_path('./py_source/nlp_data')
+	nlp = spacy.load('en')
 	doc = nlp(target_text)
 	dochtml = displacy.render(doc, style='ent')
 

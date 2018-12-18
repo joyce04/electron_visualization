@@ -1,0 +1,30 @@
+Type 1
+{
+    'documents': <pandas.core.frame.DataFrame>,
+    'processed_docs: <pandas.core.series.Series>,
+    'lda_result': {
+        'topic_model': <gensim.models.ldamodel.LdaModel>, 
+        'corpus': <list>, 
+        'dictionary': <gensim.corpora.dictionary.Dictionary>
+    }
+    'kmeans_result': <sklearn.cluster.k_means_.KMeans>,
+    'dec_result': <numpy.ndarray>
+}
+
+Type 2
+{
+    'documents': <pandas.core.frame.DataFrame>,
+    'processed_docs: <pandas.core.series.Series>,
+    'lda_result': {
+        'document_topic_counts': <list>,
+        'topic_word_counts': <list>,
+        'topic_counts': <list>,
+        'document_lengths': <list>,
+        'distinct_words': <set>
+    }
+    'kmeans_result': {
+        'cluster_centers' : <numpy.ndarray>,
+        'labels' : <numpy.ndarray>
+    },
+    'dec_result': <numpy.ndarray>
+}
