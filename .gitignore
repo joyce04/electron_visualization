@@ -11,3 +11,4 @@ data_output/*.tsv
 **/.ipynb_checkpoints
 /temp_files
 /build
+run_flask.exe
