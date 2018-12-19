@@ -9,3 +9,5 @@ sklearn
 spacy
 nltk
 pyLDAvis
+msgpack #0.5.6
+setuptools #upgrade

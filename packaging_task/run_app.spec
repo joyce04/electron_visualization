@@ -25,6 +25,7 @@ a = Analysis(['../py_source/run_app_package_ver.py'], # relative to the location
                 'spacy.glossary',
                 'spacy.gold',
                 'spacy.language',
+                'spacy.lang.en',
                 'spacy.lemmatizer',
                 'spacy.lexeme',
                 'spacy.matcher',

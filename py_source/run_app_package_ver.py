@@ -191,7 +191,7 @@ def load_detail():
 def get_entities():
 	spacy.util.set_data_path('./py_source/nlp_data')
 	nlp = spacy.load('en')
-	max_len = 100000
+	max_len = 90000
 
 	type = 'topic_'+request.form['type']
 	docdata = json.loads(request.form['data'])
@@ -210,7 +210,7 @@ def get_entities():
 				sub_text = grp.iloc[start_ind:idx]['document']
 				start_ind =idx
 				cum_len = 0
-				print(len(' '.join(sub_text.tolist())))
+				# print(len(' '.join(sub_text.tolist())))
 				doc = nlp(' '.join(sub_text.tolist()))
 
 				for ent in doc.ents:
