@@ -3,7 +3,7 @@ import numpy as np
 import os
 import json
 import collections
-from kmeans_to_pyLDAvis import kmeans_to_prepared_data  
+from kmeans_to_pyLDAvis import kmeans_to_prepared_data
 
 def get_vis_data(X, processed_docs, centers, labels):
     vis_data = kmeans_to_prepared_data(
@@ -19,8 +19,8 @@ def get_vis_data(X, processed_docs, centers, labels):
 
 def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, km_labels, dec_vis_data, dec_labels):
 
-    def intersect(a, b):
-        return len(list(set(a) & set(b)))
+    # def intersect(a, b):
+    #     return len(list(set(a) & set(b)))
 
     def write_json_to_file(path, json_str):
         pwd = os.getcwd()
@@ -38,17 +38,25 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         f.write(json.dumps(json_str, ensure_ascii=False, indent='\t'))
         f.close()
 
-    def get_topic_map(lda_docs_by_topic, other_docs_by_topic):
-        lda_key_topic_map = {i: [] for i in range(cluster_K)} # key: lda, value: other
-        lda_value_topic_map = {i: [] for i in range(cluster_K)} # key: other, value: lda
+    def get_topic_map(doc_df, col_name):
+        lda_key_topic_map = {} # key: lda, value: other
+        lda_value_topic_map = {} # key: other, value: lda
 
-        for i in range(cluster_K):
-            if i not in other_docs_by_topic.index.tolist():
-                continue
-            lda_topic = int(np.argmax([intersect(other_docs_by_topic.loc[i].values[0], lda_docs_by_topic.loc[j].values[0]) for j in range(cluster_K)]))
-            other_topic = i
-            lda_key_topic_map[lda_topic].append(other_topic)
-            lda_value_topic_map[other_topic].append(lda_topic)
+        other_doc_count = doc_df.groupby(col_name).document.count().to_dict()
+        other_lda_df = doc_df.groupby([col_name, 'topic_lda']).count().reset_index()
+        other_lda_df['doc_ratio'] = other_lda_df.apply(lambda x: x.document / other_doc_count[x[col_name]], axis=1)
+        other_lda_df['max_doc_ratio'] = other_lda_df.groupby(col_name)['doc_ratio'].transform('max')
+        other_lda_df['doc_ratio_rank'] = other_lda_df.groupby(col_name).doc_ratio.rank(ascending=False)
+
+        for i in range(1, cluster_K+1, 1):
+            for idx, row in other_lda_df[other_lda_df.doc_ratio_rank == i].sort_values('doc_ratio', ascending=False).iterrows():
+                if row.topic_lda not in lda_value_topic_map.values() and row[col_name] not in lda_value_topic_map.keys():
+                    lda_value_topic_map[row[col_name]] = row.topic_lda
+            if len(lda_value_topic_map) == cluster_K:
+                break;
+
+        for k in lda_value_topic_map:
+            lda_key_topic_map[lda_value_topic_map[k]] = k
 
         return lda_key_topic_map, lda_value_topic_map
 
@@ -88,19 +96,20 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         km_docs_by_topic = km_result.groupby('topic').agg({'id': 'unique'})
         dec_docs_by_topic = dec_result.groupby('topic').agg({'id': 'unique'})
 
-        lda_km_topic_map, km_lda_topic_map = get_topic_map(lda_docs_by_topic, km_docs_by_topic)
-        lda_dec_topic_map, dec_lda_topic_map = get_topic_map(lda_docs_by_topic, dec_docs_by_topic)
-
         merged_result = pd.merge(lda_result[['id', 'document', 'topic']], km_result[['id', 'topic']], on='id', suffixes=('_lda', '_km'))
         merged_result = pd.merge(merged_result[['id', 'document', 'topic_lda', 'topic_km']], dec_result[['id', 'topic']], on='id')
         merged_result.columns = ['id', 'document', 'topic_lda', 'topic_km', 'topic_dec']
 
         json_data = collections.OrderedDict()
+        json_data['rows'] = merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']].to_dict(orient='records')
+
+        lda_km_topic_map, km_lda_topic_map = get_topic_map(pd.DataFrame(json_data['rows']), 'topic_km')
+        lda_dec_topic_map, dec_lda_topic_map = get_topic_map(pd.DataFrame(json_data['rows']), 'topic_dec')
+
         json_data['lda_km_topic_map'] = lda_km_topic_map
         json_data['km_lda_topic_map'] = km_lda_topic_map
         json_data['lda_dec_topic_map'] = lda_dec_topic_map
         json_data['dec_lda_topic_map'] = dec_lda_topic_map
-        json_data['rows'] = merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']].to_dict(orient='records')
 
         write_json_to_file('./Visualization/res/document_table.json', json_data)
         return  json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', ''))
@@ -114,6 +123,6 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
     dec_hbar_json = get_hbar_chart_json(dec_vis_data, 'dec')
     dec_scatter_json = get_scatter_chart_json(documents, dec_labels, 'dec')
 
-    document_table_json = get_merged_table_json()   
+    document_table_json = get_merged_table_json()
 
     return lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json
