@@ -163,9 +163,9 @@
                 if (left_position[this.id][0] === 'lda') {
                     handletMouseClick(nowSelectedTopic, 'lda')
                 } else if (left_position[this.id][0] === 'km') {
-                    handletMouseClick(lda_km_topic_map[nowSelectedTopic][0], 'km')
+                    handletMouseClick(lda_km_topic_map[nowSelectedTopic], 'km')
                 } else if (left_position[this.id][0] === 'dec') {
-                    handletMouseClick(lda_dec_topic_map[nowSelectedTopic][0], 'dec')
+                    handletMouseClick(lda_dec_topic_map[nowSelectedTopic], 'dec')
                 }
             }
         })
@@ -340,9 +340,9 @@
         }
 
         if (method === 'km') {
-            ldaTopic = km_lda_topic_map[selectedTopic][0]
+            ldaTopic = km_lda_topic_map[selectedTopic]
         } else if (method === 'dec') {
-            ldaTopic = dec_lda_topic_map[selectedTopic][0]
+            ldaTopic = dec_lda_topic_map[selectedTopic]
         } else {
             ldaTopic = selectedTopic
         }
@@ -369,7 +369,13 @@
             }
         }
 
-        filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic || d.topic_km in kmTopic || d.topic_lda in decTopic })
+        if (method === 'km') {
+            filteredData = tableData.filter(function (d) { return d.topic_km == kmTopic})
+        } else if (method === 'dec') {
+            filteredData = tableData.filter(function (d) { return d.topic_lda == decTopic })
+        } else {
+            filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic})
+        }
 
         $("#jqGrid").jqGrid('clearGridData')
                     .jqGrid('setGridParam', {
