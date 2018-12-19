@@ -34,7 +34,7 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         if '.' in pathList:
             pathList = [p for p in pathList if p != '.']
 
-        f = open(os.path.join(*[os.getcwd()] + pathList), "w")
+        f = open(os.path.join(*[os.getcwd()] + pathList), "w", encoding='utf8')
         f.write(json.dumps(json_str, ensure_ascii=False, indent='\t'))
         f.close()
 
