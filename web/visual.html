@@ -360,20 +360,12 @@
 
             if (i === ldaTopic) {
                 d3.selectAll('.dot_' + i + '_lda').style("fill", '#CC2230')
-                lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#CC2230')
-                })
-                lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#CC2230')
-                })
+                d3.selectAll('.dot_' + lda_km_topic_map[i] + '_km').style("fill", '#CC2230')
+                d3.selectAll('.dot_' + lda_dec_topic_map[i] + '_dec').style("fill", '#CC2230')
             } else {
                 d3.selectAll('.dot_' + i + '_lda').style("fill", '#E6E6E6')
-                lda_km_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_km').style("fill", '#E6E6E6')
-                })
-                lda_dec_topic_map[i].forEach(idx => {
-                    d3.selectAll('.dot_' + idx + '_dec').style("fill", '#E6E6E6')
-                })
+                d3.selectAll('.dot_' + lda_km_topic_map[i] + '_km').style("fill", '#E6E6E6')
+                d3.selectAll('.dot_' + lda_dec_topic_map[i] + '_dec').style("fill", '#E6E6E6')
             }
         }
 

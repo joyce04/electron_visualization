@@ -50,8 +50,8 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
 
         for i in range(1, cluster_K+1, 1):
             for idx, row in other_lda_df[other_lda_df.doc_ratio_rank == i].sort_values('doc_ratio', ascending=False).iterrows():
-                if row.topic_lda not in lda_value_topic_map.values() and row[col_name] not in lda_value_topic_map.keys():
-                    lda_value_topic_map[row[col_name]] = row.topic_lda
+                if int(row.topic_lda) not in lda_value_topic_map.values() and int(row[col_name]) not in lda_value_topic_map.keys():
+                    lda_value_topic_map[int(row[col_name])] = int(row.topic_lda)
             if len(lda_value_topic_map) == cluster_K:
                 break;
 
