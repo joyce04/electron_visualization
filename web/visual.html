@@ -116,6 +116,7 @@
     var lda_km_topic_map, km_lda_topic_map
     var tableData
     var nowSelectedTopic = 0
+    var gridTopic = 0
     var hbar_type = 'lda'
     var topicCnt = 0
 
@@ -348,6 +349,7 @@
         }
 
         nowSelectedTopic = ldaTopic
+        gridTopic = selectedTopic
         kmTopic = lda_km_topic_map[ldaTopic]
         decTopic = lda_dec_topic_map[ldaTopic]
 
@@ -377,10 +379,13 @@
             filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic})
         }
 
+        sortnames = {'lda': 'topic_lda', 'km': 'topic_km', 'dec': 'topic_dec'}
+
         $("#jqGrid").jqGrid('clearGridData')
                     .jqGrid('setGridParam', {
                         datatype: 'local',
-                        data: filteredData
+                        data: filteredData,
+                        sortname: sortnames[method]
                     }).trigger("reloadGrid");
     }
 
@@ -394,7 +399,14 @@
             colModel.push({
                 label: columnLabels[i],
                 name: columns[i],
-                width: colw[i]
+                width: colw[i],
+                sorttype: function(cell, obj) {
+                    if (cell === gridTopic) {
+                        return 0
+                    } else {
+                        return cell + 1
+                    }
+                }
             });
         }
 
