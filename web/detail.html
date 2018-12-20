@@ -21,10 +21,9 @@
 </head>
 <body>
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <div id='layout-header'>
-        <center>
             <h1 id=title style="color:#555352">Topic Modeling Results</h1>
-        </center>
+    <div id='layout-header' style="text-align:center">
+            <h1 id=title style="color:#555352"> Topic Modeling Results</h1>
     </div>
     <table style="width: 100%; height: 100%">
       <tr>
@@ -187,7 +186,7 @@
       titles = {'lda':'Topic Modeling Result : LDA',
                 'km':'Document Clustering Result: K-Means',
                 'dec': 'Document Clustering Result: Deep Embedding Clustering'}
-      d3.select('#title').text(titles[type])
+      d3.select('#title').html('<a href="javascript:history.back()">&larr;     </a>'+titles[type])
     }
 
     function initalizeHBarExpl(){

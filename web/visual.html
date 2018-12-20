@@ -134,7 +134,7 @@
     var document_table_json = {{ document_table_json | tojson }};
 
     $(document).ready(function() {
-        hbarCanvas.attr("height", (100 * (lda_hbar_json.labels.length - 1)) + "px")
+        hbarCanvas.attr("height", (120 * (lda_hbar_json.labels.length - 1)) + "px")
         topicCnt = lda_hbar_json.labels.length - 1
 
         topicSeq = 0
@@ -173,14 +173,18 @@
     });
 
     function initializeHBarChart(barData, max_width, topicSeq, method) {
-        subCanvas = hbarCanvas.append('svg')
+        subSvg = hbarCanvas.append('svg')
             .attr("id", 'topic_' + topicSeq + '_bar_' + method)
-            .attr('height', '100px')
+            .attr('height', '120px')
             .on("click", function () {
                 handletMouseClick(topicSeq, method)
             })
-            .append("g")
-            .attr("transform", "translate(" + (margin.left + 20) + ", 0)")
+        subSvg.append('text')
+              .attr("transform", "translate(150, 10)")
+              .text('cluster ' + topicSeq)
+
+        subCanvas = subSvg.append("g")
+                      .attr("transform", "translate(" + (margin.left + 20) + ", 20)")
 
         var x = d3.scaleBand()
             .rangeRound([0, 400])
