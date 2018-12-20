@@ -113,7 +113,6 @@
         left: 40
     }
 
-    var lda_km_topic_map, km_lda_topic_map
     var tableData
     var nowSelectedTopic = 0
     var gridTopic = 0
@@ -148,11 +147,6 @@
         initializeScatterChar(km_scatter_json, 'km')
         initializeScatterChar(dec_scatter_json, 'dec')
 
-        lda_km_topic_map = document_table_json.lda_km_topic_map
-        km_lda_topic_map = document_table_json.km_lda_topic_map
-        lda_dec_topic_map = document_table_json.lda_dec_topic_map
-        dec_lda_topic_map = document_table_json.dec_lda_topic_map
-
         tableData = document_table_json.rows
         initializeTable(tableData)
 
@@ -161,13 +155,7 @@
             d3.select('.indicator').style('left', left_position[this.id][1])
 
             if (nowSelectedTopic != left_position[this.id][0]) {
-                if (left_position[this.id][0] === 'lda') {
-                    handletMouseClick(nowSelectedTopic, 'lda')
-                } else if (left_position[this.id][0] === 'km') {
-                    handletMouseClick(lda_km_topic_map[nowSelectedTopic], 'km')
-                } else if (left_position[this.id][0] === 'dec') {
-                    handletMouseClick(lda_dec_topic_map[nowSelectedTopic], 'dec')
-                }
+                handletMouseClick(nowSelectedTopic, left_position[this.id][0])
             }
         })
     });
@@ -344,18 +332,8 @@
 
         }
 
-        if (method === 'km') {
-            ldaTopic = km_lda_topic_map[selectedTopic]
-        } else if (method === 'dec') {
-            ldaTopic = dec_lda_topic_map[selectedTopic]
-        } else {
-            ldaTopic = selectedTopic
-        }
-
-        nowSelectedTopic = ldaTopic
+        nowSelectedTopic = selectedTopic
         gridTopic = selectedTopic
-        kmTopic = lda_km_topic_map[ldaTopic]
-        decTopic = lda_dec_topic_map[ldaTopic]
 
         for (var i = 0; i < topicCnt; i++) {
             if (i === selectedTopic) {
@@ -364,23 +342,23 @@
                 d3.select('#topic_' + i + '_bar_' + method).style('background', '')
             }
 
-            if (i === ldaTopic) {
+            if (i === selectedTopic) {
                 d3.selectAll('.dot_' + i + '_lda').style("fill", '#CC2230')
-                d3.selectAll('.dot_' + lda_km_topic_map[i] + '_km').style("fill", '#CC2230')
-                d3.selectAll('.dot_' + lda_dec_topic_map[i] + '_dec').style("fill", '#CC2230')
+                d3.selectAll('.dot_' + i + '_km').style("fill", '#CC2230')
+                d3.selectAll('.dot_' + i + '_dec').style("fill", '#CC2230')
             } else {
                 d3.selectAll('.dot_' + i + '_lda').style("fill", '#E6E6E6')
-                d3.selectAll('.dot_' + lda_km_topic_map[i] + '_km').style("fill", '#E6E6E6')
-                d3.selectAll('.dot_' + lda_dec_topic_map[i] + '_dec').style("fill", '#E6E6E6')
+                d3.selectAll('.dot_' + i + '_km').style("fill", '#E6E6E6')
+                d3.selectAll('.dot_' + i + '_dec').style("fill", '#E6E6E6')
             }
         }
 
         if (method === 'km') {
-            filteredData = tableData.filter(function (d) { return d.topic_km == kmTopic})
+            filteredData = tableData.filter(function (d) { return d.topic_km == selectedTopic})
         } else if (method === 'dec') {
-            filteredData = tableData.filter(function (d) { return d.topic_lda == decTopic })
+            filteredData = tableData.filter(function (d) { return d.topic_lda == selectedTopic })
         } else {
-            filteredData = tableData.filter(function (d) { return d.topic_lda === ldaTopic})
+            filteredData = tableData.filter(function (d) { return d.topic_lda === selectedTopic})
         }
 
         sortnames = {'lda': 'topic_lda', 'km': 'topic_km', 'dec': 'topic_dec'}

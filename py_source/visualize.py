@@ -39,7 +39,6 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         f.close()
 
     def get_topic_map(doc_df, col_name):
-        lda_key_topic_map = {} # key: lda, value: other
         lda_value_topic_map = {} # key: other, value: lda
 
         other_doc_count = doc_df.groupby(col_name).document.count().to_dict()
@@ -52,23 +51,24 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
             for idx, row in other_lda_df[other_lda_df.doc_ratio_rank == i].sort_values('doc_ratio', ascending=False).iterrows():
                 if int(row.topic_lda) not in lda_value_topic_map.values() and int(row[col_name]) not in lda_value_topic_map.keys():
                     lda_value_topic_map[int(row[col_name])] = int(row.topic_lda)
-            if cluster_K - len(lda_value_topic_map) == 1:
-                
-
             if len(lda_value_topic_map) == cluster_K:
                 break;
 
-        for k in lda_value_topic_map:
-            lda_key_topic_map[lda_value_topic_map[k]] = k
+        if len(lda_value_topic_map) != cluster_K:
+            remain_lda = list(set(range(cluster_K)) - set(lda_value_topic_map.values()))
+            remain_other = list(set(range(cluster_K)) - set(lda_value_topic_map.keys()))
 
-        return lda_key_topic_map, lda_value_topic_map
+            for i, k in enumerate(remain_other):
+                lda_value_topic_map[k] = remain_lda[i]
+
+        return lda_value_topic_map
 
     def get_hbar_chart_json(vis_data, method, mapper):
         hbar_json = {}
         hbar_json['labels'] = vis_data.topic_info.Category.unique().tolist()
         hbar_json['max_width'] = vis_data.topic_info[vis_data.topic_info.Category != 'Default'][['Total']].max()[0] * 1.
         for l in vis_data.topic_info.Category.unique().tolist():
-            real_topic = l if mapper == None or l == 'Default' else 'Topic%d' % mapper[int(l.replace('Topic', ''))]
+            real_topic = l if mapper == None or l == 'Default' else 'Topic%s' % str(mapper[int(l.replace('Topic', ''))-1]+1)
             tmp_df = vis_data.topic_info[vis_data.topic_info.Category == l].sort_values(['Category', 'Freq'], ascending=[True, False])
             tmp_df.Total = tmp_df.Total.apply(lambda x: x * 1.)
             hbar_json[real_topic] = list(tmp_df[['Term', 'Freq', 'Total']].sort_values('Freq', ascending=False).reset_index().to_dict('index').values())
@@ -78,9 +78,11 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
 
     def get_scatter_chart_json(doc_result, method):
         doc_result = pd.merge(doc_result, pd.DataFrame(tsne_result, columns=['plot_x', 'plot_y']), left_index=True, right_index=True)
+        doc_df = doc_result[['id', 'plot_x', 'plot_y', 'topic_%s' % method]]
+        doc_df.columns = ['id', 'plot_x', 'plot_y', 'topic']
 
-        scatter_json = list(doc_result[['id', 'plot_x', 'plot_y', 'topic_%s' % method]].to_dict('index').values())
-
+        scatter_json = list(doc_df.to_dict('index').values())
+        
         write_json_to_file('./Visualization/res/%s/scatter_data.json' % method, scatter_json)
 
         return json.loads(json.dumps(scatter_json, ensure_ascii=False, indent='\t').replace('`', ''))
@@ -92,32 +94,27 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         merged_result['topic_dec'] = dec_labels
         merged_result.columns = ['id', 'document', 'topic_lda', 'topic_km', 'topic_dec']
 
-        json_data = collections.OrderedDict()
-        json_data['rows'] = merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']].to_dict(orient='records')
-
-        lda_km_topic_map, km_lda_topic_map = get_topic_map(pd.DataFrame(json_data['rows']), 'topic_km')
-        lda_dec_topic_map, dec_lda_topic_map = get_topic_map(pd.DataFrame(json_data['rows']), 'topic_dec')
+        km_lda_topic_map = get_topic_map(pd.DataFrame(merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']]), 'topic_km')
+        dec_lda_topic_map = get_topic_map(pd.DataFrame(merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']]), 'topic_dec')
 
         merged_result['topic_km'] = merged_result.topic_km.apply(lambda x: km_lda_topic_map[x])
         merged_result['topic_dec'] = merged_result.topic_dec.apply(lambda x: dec_lda_topic_map[x])
 
-        json_data['lda_km_topic_map'] = lda_km_topic_map
-        json_data['km_lda_topic_map'] = km_lda_topic_map
-        json_data['lda_dec_topic_map'] = lda_dec_topic_map
-        json_data['dec_lda_topic_map'] = dec_lda_topic_map
-
+        json_data = collections.OrderedDict()
+        json_data['rows'] = merged_result[['document', 'topic_lda', 'topic_km', 'topic_dec']].to_dict(orient='records')
+        
         write_json_to_file('./Visualization/res/document_table.json', json_data)
         return  json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', '')), merged_result, km_lda_topic_map, dec_lda_topic_map
 
     document_table_json, mapped_documents, km_lda_topic_map, dec_lda_topic_map = get_merged_table_json(documents, lda_labels, km_labels, dec_labels)
 
-    lda_hbar_json = get_hbar_chart_json(lda_vis_data, 'lda')
-    lda_scatter_json = get_scatter_chart_json(mapped_documents, 'lda', None)
+    lda_hbar_json = get_hbar_chart_json(lda_vis_data, 'lda', None)
+    lda_scatter_json = get_scatter_chart_json(mapped_documents, 'lda')
 
-    km_hbar_json = get_hbar_chart_json(km_vis_data, 'km')
-    km_scatter_json = get_scatter_chart_json(mapped_documents, 'km', km_lda_topic_map)
+    km_hbar_json = get_hbar_chart_json(km_vis_data, 'km', km_lda_topic_map)
+    km_scatter_json = get_scatter_chart_json(mapped_documents, 'km')
 
-    dec_hbar_json = get_hbar_chart_json(dec_vis_data, 'dec')
-    dec_scatter_json = get_scatter_chart_json(mapped_documents, 'dec', dec_lda_topic_map)
+    dec_hbar_json = get_hbar_chart_json(dec_vis_data, 'dec', dec_lda_topic_map)
+    dec_scatter_json = get_scatter_chart_json(mapped_documents, 'dec')
 
     return lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json
