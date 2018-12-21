@@ -180,18 +180,28 @@
     }
 
     function initializeHBarChart(barData, max_width, topicSeq, method) {
+        var cValue = d3.schemeCategory10
+
         subSvg = hbarCanvas.append('svg')
             .attr("id", 'topic_' + topicSeq + '_bar_' + method)
             .attr('height', '120px')
             .on("click", function () {
                 handletMouseClick(topicSeq, method)
             })
+
+        subSvg.append('rect')
+            .attr('x', 110)
+            .attr('y', 0)
+            .attr("height", 12)
+            .attr("width", 12)
+            .attr("fill", cValue[topicSeq])
+
         subSvg.append('text')
-              .attr("transform", "translate(150, 10)")
-              .text('cluster ' + topicSeq)
+            .attr("transform", "translate(150, 10)")
+            .text('cluster ' + topicSeq)
 
         subCanvas = subSvg.append("g")
-                      .attr("transform", "translate(" + (margin.left + 20) + ", 20)")
+                    .attr("transform", "translate(" + (margin.left + 20) + ", 20)")
 
         var x = d3.scaleBand()
             .rangeRound([0, 400])
