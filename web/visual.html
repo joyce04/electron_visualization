@@ -63,7 +63,7 @@
         </div>
         <div id='layout-hbar'>
             <center>
-                <h4 style="color:#555352"><a href="javascript:initializeView()">Choose Topic Cluster</a></h4>
+                <h4 style="color:#555352">Choose Topic Cluster</h4>
                 <div class="radioGroup">
                     <input type='radio' name='models' id='lda_radio' checked='checked'>
                     <label for='lda_radio'>LDA</label>
@@ -95,6 +95,9 @@
                         <a href="javascript:post_to_url('dec')"><h4 style="margin-top: 0px; color:#555352">Deep Embedding &rArr;</h4></a>
                         <svg class='layout-scatter' id="scatter_container_de"></svg>
                     </center>
+                </div>
+                <div class="resetButton">
+                    Reset Topic Color
                 </div>
             </div>
             <div id='layout-table'>
@@ -158,6 +161,8 @@
                 handletMouseClick(nowSelectedTopic, left_position[this.id][0])
             }
         })
+
+        d3.select('.resetButton').on('click', initializeView)
     });
 
     function initializeView() {

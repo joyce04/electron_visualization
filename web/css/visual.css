@@ -52,6 +52,19 @@ text {
     fill: white;
 }
 
+.resetButton {
+    text-align: center;
+    width: 129px;
+    border: 1px solid;
+    float: right;
+    background-color: #F67280;
+    color: #FFFFFF;
+    overflow: hidden;
+    border-radius: 0.4rem;
+    padding: 5px;
+    margin-right: 1%;
+}
+
 .radioGroup {
     width: 241px;
     display: inline-flex;
