@@ -11,5 +11,5 @@ data_output/*.tsv
 **/.ipynb_checkpoints
 /temp_files
 /build
-/py_source/nlp_data
+/py_source/nlp_data/en/
 run_flask.exe
