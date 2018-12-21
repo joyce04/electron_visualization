@@ -1,5 +1,7 @@
 const { app, session, BrowserWindow } = require('electron');
 const path = require('path');
+const find_proc = require('find-process');
+const proc = require('process')
 
 const EXEC_MODULE = 'run_flask'
 const PY_MODULE = 'run_app'
@@ -72,9 +74,7 @@ function addAppEventListeners() {
     app.on('window-all-closed', () => {
         // On macOs it is common for application and their icon
         // to stay active until the user quits explicitly with Cmd + q
-        if (process.platform !== 'darwin') {
-            app.quit()
-        }
+        app.quit()
     });
 
     app.on('quit', () => {
@@ -92,9 +92,9 @@ app.on('ready', () => {
     console.log(script)
 
     if (guessPackaged()) {
-        subpy = require('child_process').execFile(script)
+        subpy = require('child_process').execFile(script, {detached: true})
     } else {
-        subpy = require('child_process').spawn('python3', [script])
+        subpy = require('child_process').spawn('python3', [script], {detached: true})
     }
 
     if (subpy != null) {

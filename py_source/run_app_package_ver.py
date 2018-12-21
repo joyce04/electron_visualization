@@ -10,8 +10,7 @@ import spacy
 
 from spacy import displacy
 from datetime import datetime
-from werkzeug.utils import secure_filename
-from topic_modeling import run_topic_modeling, load_topic_modeling
+from topic_modeling import load_topic_modeling
 
 app = Flask(__name__, template_folder='./web/', static_folder='./web')
 
@@ -48,37 +47,6 @@ def mainPage():
 
 	return render_template('main.html', recent = recent_models, fname = '', fext='none', column = [], colw = [], data = '{}', flag='init')
 
-@app.route('/user/<name>', methods=['GET', 'POST'])
-def user(name):
-	"""
-	Move to user.html with given user name
-
-	Args:
-		name (str) : user name
-	Returns:
-		html : user.html
-	"""
-	return render_template('user.html', name=name)
-
-@app.route('/d3/<chart_type>', methods=['GET', 'POST'])
-def open_chart(chart_type):
-	"""
-	Move to chart.html by given chart type
-
-	Args:
-		chart_type (str) : chart type
-	Returns:
-		html : chart.html
-	"""
-	if chart_type == 'radar_chart':
-		return render_template('radar.html')
-	else:
-		return render_template('bar_chart.html')
-
-@app.route('/grid', methods=['GET', 'POST'])
-def open_grid():
-	return render_template('grid.html', fname = '', fext='none', column = [], colw = [], data = '{}', flag='init')
-
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
 	import pickle
@@ -87,13 +55,7 @@ def upload_file():
 	fname = f.filename.split('.')[0]
 	fext = f.filename.split('.')[1]
 
-	if fext == 'csv':
-		df = pd.read_csv(f, index_col=0).reset_index(drop=True)
-		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
-	elif fext == 'tsv':
-		df = pd.read_csv(f, sep='\t', index_col=0).reset_index(drop=True)
-		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
-	elif fext == 'pkl':
+	if fext == 'pkl':
 		saved_model = pickle.load(f)
 		with open(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), 'wb') as f:
 			pickle.dump(saved_model, f)
@@ -126,29 +88,6 @@ def save_model_outputs(outputs, fname, cluster_K):
 	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
 		pickle.dump(outputs, f)
 	f.close()
-
-@app.route('/prepare_model', methods=['POST'])
-def prepare_model():
-	fname = request.form['fname']
-	fext = request.form['fext']
-	target_column_name = request.form['target_column']
-	cluster_K = request.form['k']
-
-	return render_template('load.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
-
-@app.route('/run_model', methods=['POST'])
-def run_model():
-	fname = request.form['fname']
-	fext = request.form['fext']
-	target_column_name = request.form['target_column']
-	cluster_K = int(request.form['k']) if len(request.form['k']) > 0 else 8
-
-	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json = run_topic_modeling(cluster_K = cluster_K, fname=fname, fext=fext, target_column_name=target_column_name)
-
-	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json)
-	save_model_outputs(outputs, fname, cluster_K)
-
-	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
 
 @app.route('/import_model', methods=['POST'])
 def import_model():
