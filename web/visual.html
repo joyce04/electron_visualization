@@ -63,7 +63,7 @@
         </div>
         <div id='layout-hbar'>
             <center>
-                <h4 style="color:#555352">Choose Topic Cluster</h4>
+                <h4 style="color:#555352"><a href="javascript:initializeView()">Choose Topic Cluster</a></h4>
                 <div class="radioGroup">
                     <input type='radio' name='models' id='lda_radio' checked='checked'>
                     <label for='lda_radio'>LDA</label>
@@ -159,6 +159,20 @@
             }
         })
     });
+
+    function initializeView() {
+        left_position = {'0': 'lda', '33.3': 'km', '66.6': 'dec'}
+        method = left_position[d3.select('.indicator').style('left').slice(0, -1)]
+        d3.select('#topic_' + nowSelectedTopic + '_bar_' + method).style('background', '')
+
+        var cValue = d3.schemeCategory10
+
+        for (var i = 0; i < topicCnt; i++) {
+            d3.selectAll('.dot_' + i + '_lda').style("fill", cValue[i])
+            d3.selectAll('.dot_' + i + '_km').style("fill", cValue[i])
+            d3.selectAll('.dot_' + i + '_dec').style("fill", cValue[i])
+        }
+    }
 
     function initializeHBarChart(barData, max_width, topicSeq, method) {
         subSvg = hbarCanvas.append('svg')
@@ -361,13 +375,17 @@
             filteredData = tableData.filter(function (d) { return d.topic_lda === selectedTopic})
         }
 
-        sortnames = {'lda': 'topic_lda', 'km': 'topic_km', 'dec': 'topic_dec'}
+        sortnames = {
+            'lda': 'topic_lda asc, topic_km asc, topic_dec asc', 
+            'km': 'topic_km asc, topic_lda asc, topic_dec asc', 
+            'dec': 'topic_dec asc, topic_lda asc, topic_km asc'
+        }
 
         $("#jqGrid").jqGrid('clearGridData')
                     .jqGrid('setGridParam', {
                         datatype: 'local',
                         data: filteredData,
-                        sortname: sortnames[method]
+                        sortname: 'document'
                     }).trigger("reloadGrid");
     }
 
@@ -377,7 +395,24 @@
         var colw = [70, 10, 10, 10]
         var colModel = [];
 
-        for (i = 0; i < columns.length; i++) {
+        colModel.push({
+            label: columnLabels[0],
+            name: columns[0],
+            width: colw[0],
+            sorttype: function(cell, obj) {
+                left_position = {'0': 'topic_lda', '33.3': 'topic_km', '66.6': 'topic_dec'}
+                method = left_position[d3.select('.indicator').style('left').slice(0, -1)]
+                if (obj.topic_lda === gridTopic && obj.topic_km === gridTopic && obj.topic_dec === gridTopic) {
+                    return 0
+                } else if (obj[method] === gridTopic) {
+                    return 1
+                } else {
+                    return obj.topic_lda + 1
+                }
+            }
+        })
+
+        for (i = 1; i < columns.length; i++) {
             colModel.push({
                 label: columnLabels[i],
                 name: columns[i],
@@ -404,10 +439,7 @@
             autowidth: true,
             shrinktofit: true,
             pager: "#jqGridPager",
-            sortname: "document",
-            // gridComplete: function(){
-            //
-            // }
+            sortname: "document"
         });
         $('#jqGrid').jqGrid('filterToolbar');
         $('#jqGrid').jqGrid('navGrid', "#jqGridPager", {
