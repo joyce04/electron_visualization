@@ -162,6 +162,7 @@
           d3.select('#entities_div').append('br')
       }
       origin_display = d3.select('#entities_container').style('display')
+      d3.select('#entities_container').style('display', 'none')
       d3.select('#entities_container').style('display', origin_display)
     }
 
