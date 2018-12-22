@@ -1,6 +1,10 @@
-# Comparing Topic Modeling and Document Clustering
+# Comparative Visualization of  Document Clustering Models
 
 Models in comparison : LDA(Topic Modeling), K-Means, Deep Embedding Clustering
+
+A visualization tool to compara document clustering results of clustering models.
+
+Demo Video: [![Watch the video](./resource/main_view.png)](./resource/video_clip2.mp4)
 
 
 For Dev env
