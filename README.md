@@ -8,25 +8,19 @@ A visualization tool to compara document clustering results of clustering models
 
 ## Overview
 
+* Juxtapose 3 Models that using different techniques to Topic Modeling
 ![main_page](./resource/main_view.png)
 
-<center>Juxtapose 3 Models that using different techniques to Topic Modeling</center>
 
-
-
+* Demo Video
 ![Demo_Video](./resource/video_low.gif)
 
-<center>Demo Video</center>
 
 ## Project Description
 
 Document clustering is one of the major tasks in natural language processing fields. While the widely researches for document clustering, it has several limitations because of the clustering is one of the unsupervised learning techniques. The most critical limitations are anyone cannot be guaranteed that the clustering result is right. This means that someone who is the expert having domain-specific knowledge has to check and verify the clustering result.
 
 Due to this reason, Grace and I catch up the needs to compare clustering results from different clustering techniques and we visualized different clustering model on a web page to support the evaluation of models and quality of clusters to retrieve target clusters, which often becomes an exploratory problem.
-
-For this project, using the following skills:
-
-![python](https://img.shields.io/badge/python-green.svg?logo=python&style=for-the-badge&colorB=AAAAAA){:class="img-badge"} ![electron](https://img.shields.io/badge/electron-green.svg?style=for-the-badge&colorB=AAAAAA){:class="img-badge"} ![D3](https://img.shields.io/badge/d3.js-green.svg?logo=d3.js&style=for-the-badge&colorB=AAAAAA){:class="img-badge"} ![Javascript](https://img.shields.io/badge/javascript-green.svg?logo=JavaScript&style=for-the-badge&colorB=AAAAAA){:class="img-badge"}
 
 ---
 
