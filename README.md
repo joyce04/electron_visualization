@@ -6,7 +6,7 @@ A visualization tool to compara document clustering results of clustering models
 
 Main Page: ![main_page](./resource/main_view.png)
 
-Demo Video: ![](./resource/video_clip2.gif)
+Demo Video: ![](./resource/video_low.gif)
 
 
 For Dev env
