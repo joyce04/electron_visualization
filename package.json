@@ -1,0 +1,42 @@
+{
+  "name": "visualization",
+  "version": "1.0.0",
+  "description": "An Electron Application with Python Flask and D3 to visualize Document Clustering and Topic Modeling",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-packager . vis_app --overwrite",
+    "package-osx": "electron-packager ./ football_vis --platform=darwin --arch=x64 --ignore=node_modules/electron-* --overwrite",
+    "package-linux": "electron-packager ./ football_vis --platform=linux --arch=x64 --ignore=node_modules/electron-* --overwrite",
+    "package-window": "electron-packager ./ football_vis --overwrite --asar --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=KG --version-string.FileDescription=KG --version-string.ProductName=\"Football Visualization App\""
+  },
+  "keywords": [
+    "electron",
+    "document_clustering",
+    "flask",
+    "D3",
+    "visualization"
+  ],
+  "author": {
+    "name": "gracelee, kyleyou"
+  },
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joyce04/football_visualization.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joyce04/football_visualization.git",
+    "email": "gracelee@dbs.snu.ac.kr"
+  },
+  "devDependencies": {
+    "asar": "^0.14.6",
+    "electron": "^2.0.14",
+    "electron-packager": "^12.2.0"
+  },
+  "dependencies": {
+    "d3": "^5.7.0",
+    "jquery": "^3.3.1"
+  }
+}

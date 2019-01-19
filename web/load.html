@@ -1,0 +1,33 @@
+<html>
+<style>
+	html {
+		background: url('../web/resource/loading.png') no-repeat center center;
+		background-size: 500px 160px;
+		background-color: #355C7D;
+	}
+</style>
+<script>
+	window.onload = function () {
+		setTimeout(function () {
+			document.getElementById("run_model_form").submit();
+		}, 500);
+	}
+</script>
+
+<body>
+	{% if fext == 'pkl' %}
+		<form id="run_model_form" action='/import_model' method='post'>
+			<input type="hidden" name="fname" value="{{ fname }}" />
+			<input type="hidden" name="fext" value="{{ fext }}" />
+		</form>
+	{% else %}
+		<form id="run_model_form" action='/run_model' method='post'>
+			<input type="hidden" name="fname" value="{{ fname }}" />
+			<input type="hidden" name="fext" value="{{ fext }}" />
+			<input type="hidden" name="target_column" value="{{ target_column }}" />
+			<input type="hidden" name="k" value="{{ k }}" />
+		</form>
+	{% endif %}
+</body>
+
+</html>

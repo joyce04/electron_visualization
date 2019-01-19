@@ -1,0 +1,15 @@
+node_modules/
+.DS_Store
+Pipfile
+football_vis-darwin-x64/
+release-builds/
+.vscode/
+Visualization/
+data_output/*.tsv
+**/__pycache__/
+**/mallet_top_sen.tsv
+**/.ipynb_checkpoints
+/temp_files
+/build
+/py_source/nlp_data/en/
+run_flask.exe

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/visual.css') }}" />
+
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-en.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+		$.jgrid.defaults.width = 1180;
+		$.jgrid.defaults.responsive = true;
+		$.jgrid.defaults.styleUI = 'Bootstrap';
+    </script>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <div id='layout-header' style="text-align:center">
+            <h1 id=title style="color:#555352"> Topic Modeling Results</h1>
+    </div>
+    <table style="width: 100%; height: 100%">
+      <tr>
+          <td style="text-align:center">
+            <div class="radioGroup" style="width:161px">
+                <input type='radio' id='keyword_radio' checked='checked'>
+                <label for='keyword_radio'> Keywords </label>
+                <input type='radio' id='entity_radio'>
+                <label for='entity_radio'> Entities </label>
+                <span id='menu_radio_ind' class="indicator"></span>
+            </div>
+          </td>
+          <td style="width: 70%">
+            <div id="clus_distrib_chart" style="width:100%;"></div>
+              <div>
+                <span id='distrib_ind' class="indicator" style="width: 0px; height: 0px;"></span>
+            </div>
+          </td>
+      </tr>
+      <tr>
+        <td valign="top" rowspan="2">
+            <div id="keyword_div" style="display=block">
+              <div id="hbar_container" style="padding-left:10px"></div>
+              <div id="hbar_exp" style="padding-left:10px">
+                <svg width="400px" height="100px">
+                  <rect x="90" y="0" width="20" height="20" fill="#C06C84"/>
+                  <text x="200" y="15" font-size="14px" width="60px" height="40" fill="#555352">Frequency in the selected topic</text>
+                  <rect x="90" y="30" width="20" height="20" fill="#355C7D" />
+                  <text x="195" y="45" font-size="14px" width="60px" height="40" fill="#555352">Frequency in total document</text>
+                </svg>
+              </div>
+            </div>
+            <div id="entities_container" style="padding-left:100px; display=none">
+              <div id="entities_div"></div>
+            </div>
+        </td>
+          <td style="height: 50%; padding-top: 20px; padding-right: 20px">
+              <div id='layout-table'>
+                  <table id="jqGrid"></table>
+                  <div id="jqGridPager"></div>
+              </div>
+          </td>
+      </tr>
+      <tr>
+        <td style="height: 20%; padding-top: 10px; padding-bottom: 20px; padding-right: 20px">
+            <div id='entities_render'></div>
+        </td>
+      </tr>
+    </table>
+</body>
+<script type="text/javascript">
+    var margin = {
+        top: 20,
+        right: 30,
+        bottom: 30,
+        left: 40
+    }
+
+    var type = {{ type_json | tojson}};
+    var bar_json = {{ bar_json | tojson }};
+    var document_table_json = {{ document_table_json | tojson }};
+    var distrib_json = {{ distrib_json | tojson}};
+    var column_type = 'topic_'+type
+    var selected_topic_num = 0
+    var entities_count = []
+
+    function get_entity(text) {
+        $.ajax({
+            url: '/entity',
+            type: 'POST',
+            data: {'content':text},
+            success: function(res) {
+                dochtml = JSON.parse(res).dochtml
+                $('#entities_render').html(dochtml)
+            },
+            error: function(error){
+                console.log(error);
+            }
+        })
+    }
+
+    function get_entities() {
+        $.ajax({
+            url: '/entities',
+            type: 'POST',
+            data: { data: JSON.stringify(document_table_json),
+                    type: type},
+            success: function(res) {
+                counts = JSON.parse(res).counts
+                // console.log(counts)
+                entities_count = counts
+                initializeEntitiesCount()
+            },
+            error: function(error){
+                console.log(error);
+            }
+        })
+    }
+
+    var hbarCanvas = d3.select("#hbar_container").attr("width", "90%")
+
+    $(document).ready(function() {
+        get_entities()
+        initializeRadio()
+        initializeHBarChart(bar_json['Topic1'].slice(0, 15), bar_json.max_width)
+
+        tableData = document_table_json.rows
+        initializeTitle(type)
+        initializeTable(tableData.filter((d)=>{return d[column_type]==0}))
+        initalizeDistributionChart(JSON.parse(distrib_json))
+    })
+    const mark_colors = {'ORG':['#7aecec', 'Organization'], 'DATE':['#bfe1d9', 'Date'],
+                        'CARDINAL':['#e4e7d2', 'Numerals'], 'PERSON':['#aa9cfc', 'People'],
+                        'NORP':['#c887fb', 'Nation | Group'], 'GPE':['#feca74', 'Country | City'],
+                        'EVENT':['#ffeb80', 'Battles | Sports Events'], 'FAC': ['#ddd', 'Facility'],
+                        'LANGUAGE':['#ff8197', 'Language'], 'LAW':['#ff8197', 'Laws'],
+                        'LOC':['#ff9561', 'Locations'], 'MONEY':['#e4e7d2', 'Monetary values'],
+                        'ORDINAL':['#e4e7d2', 'Ordinal'], 'PERCENT':['#e4e7d2', '%'],
+                        'PRODUCT':['#bfeeb7', 'Objects'], 'QUANTITY':['#e4e7d2', 'Measurements'],
+                        'TIME':['#bfe1d9', 'Time'], 'WORK_OF_ART':['#f0d0ff', 'Titles of books, songs']}
+
+    function initializeEntitiesCount(){
+      entities = entities_count.filter((d)=>{return d['cluster']==selected_topic_num-1})
+      // console.log(entities)
+
+      d3.select('#entities_div').selectAll('mark').remove()
+      d3.select('#entities_div').selectAll('br').remove()
+      for (i = 0; i < entities.length; i++) {
+          d3.select('#entities_div').append('mark')
+            .attr('class', 'mark')
+            .style('background', mark_colors[entities[i]['label']][0])
+            .text(entities[i]['text'])
+            .append('span')
+            .attr('class', 'mark_span')
+            .text(entities[i]['label'])
+          d3.select('#entities_div').append('br')
+          d3.select('#entities_div').append('br')
+      }
+      origin_display = d3.select('#entities_container').style('display')
+      d3.select('#entities_container').style('display', 'none')
+      d3.select('#entities_container').style('display', origin_display)
+    }
+
+    function initializeRadio(){
+      d3.select('.entities_div').style('display', 'none')
+
+      d3.select('.radioGroup').selectAll('input').on('click', function() {
+
+        if(d3.select(this).attr('id')=='keyword_radio'){
+          d3.select('#menu_radio_ind').style('left', '0%')
+          d3.select('#keyword_div').style('display', 'block')
+          d3.select('#entities_container').style('display', 'none')
+        } else {
+          d3.select('#menu_radio_ind').style('left', '50%')
+          d3.select('#keyword_div').style('display', 'none')
+          d3.select('#entities_container').style('display', 'block')
+        }
+      })
+    }
+
+    function initializeTitle(type){
+      titles = {'lda':'Topic Modeling Result : LDA',
+                'km':'Document Clustering Result: K-Means',
+                'dec': 'Document Clustering Result: Deep Embedding Clustering'}
+      d3.select('#title').html('<a href="javascript:history.back()">&larr;     </a>'+titles[type])
+    }
+
+    function initalizeHBarExpl(){
+      expCanvas = d3.select("#hbar_exp").append('svg')
+                                        .attr('height', 300)
+                                        .attr('width', 300)
+                                        .append("g")
+                                        .attr("transform", "translate(" + (90) + ", 20)")
+      expCanvas.append("rect")
+        .attr("x", 0)
+        .attr("y", 30)
+        .attr("height", 30)
+        .attr("width", 30)
+        .attr("fill", '#355C7D')
+    }
+
+    function initializeHBarChart(barData, max_width) {
+      hbar_width = '400px'
+      hbar_hegith = '430px'
+      subCanvas = hbarCanvas.append('svg')
+          .attr("id", 'bar')
+          .attr('height', hbar_hegith)
+          .attr('width', hbar_width)
+          .append("g")
+          .attr("transform", "translate(" + (90) + ", 20)")
+
+      var x = d3.scaleBand()
+          .rangeRound([0, hbar_width])
+
+      var y = d3.scaleBand()
+          .rangeRound([0, 400])
+          .padding(0.1)
+
+      y.domain(barData.map(d => d['Term']))
+      x.domain(barData.map(d => d['Freq']))
+
+      subCanvas.append('g')
+          .call(d3.axisLeft(y).tickSize(0))
+          .call(subCanvas => subCanvas.select('.domain').remove())
+          .selectAll('text')
+          .style("text-anchor", "end")
+
+      var hbars = subCanvas.selectAll('.bar')
+          .data(barData, d => d['Term'])
+
+      overallFreqBars = hbars.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("y", function (d, i) {
+              return 3 + 26 * i
+          })
+          .attr("height", y.bandwidth())
+          .attr("width", d => Number(d['Total']) / max_width * 400)
+          .attr("fill", '#355C7D')
+
+      clustFreqBars = hbars.enter().append("rect")
+          .attr("class", "bar")
+          .attr("x", 0)
+          .attr("y", function (d, i) {
+              return 3 + 26 * i
+          })
+          .attr("height", y.bandwidth())
+          .attr("width", d => Number(d['Freq']) / max_width * 400)
+          .attr("fill", '#C06C84')
+
+      overallFreqBars.merge(hbars)
+                    .transition().duration(1000)
+                    .attr("x", 0)
+                    .attr("y", function (d, i) {
+                        return 3 + 26 * i
+                    })
+                    .attr("height", y.bandwidth())
+                    .attr("width", d => Number(d['Total']) / max_width * 400)
+
+      clustFreqBars.merge(hbars)
+                  .transition().duration(1000)
+                  .attr("x", 0)
+                  .attr("y", function (d, i) {
+                      return 3 + 26 * i
+                  })
+                  .attr("height", y.bandwidth())
+                  .attr("width", d => Number(d['Freq']) / max_width * 400)
+
+      hbars.exit().remove()
+
+      hbars.selectAll('.domain').remove()
+    }
+
+    function initializeTable(data) {
+        var columns = ['document', 'topic_lda', 'topic_km', 'topic_dec'];
+        var columnLabels = ['Document', 'Topic(LDA)', 'Topic(KM)', 'Topic(DEC)'];
+        var colw = [70, 10, 10, 10]
+        var colModel = [];
+
+        for (i = 0; i < columns.length; i++) {
+            colModel.push({
+                label: columnLabels[i],
+                name: columns[i],
+                width: colw[i]
+            });
+        }
+
+        $("#jqGrid").jqGrid({
+            data: data,
+            datatype: "local",
+            colModel: colModel,
+            viewrecords: true,
+            width: 1170,
+            height: 450,
+            rowNum: 13,
+            autowidth: true,
+            shrinktofit: true,
+            pager: "#jqGridPager",
+            onSelectRow: function(rowidx) {
+                var rid = $("#jqGrid").jqGrid("getGridParam", "selrow")
+                if (rid) {
+                   var row = $("#jqGrid").jqGrid("getRowData", rid)
+                   get_entity(row.document)
+                 }
+            }
+        });
+        $('#jqGrid').jqGrid('navGrid', "#jqGridPager", {
+            search: false,
+            add: false,
+            edit: false,
+            del: false,
+            view: true,
+            refresh: true
+        },
+            {}, // edit options
+            {}, // add options
+            {}, // delete options
+            {} // search options - define multiple search
+        );
+    }
+
+    function initalizeDistributionChart(data){
+      cluster_nums = Object.keys(data)
+      total_counts = Object.values(data).reduce((a,b)=>a+b)
+      let cumulative = 0
+      var cluster_data = cluster_nums.map(d =>{
+        cumulative += data[d]
+        return {
+          value : data[d],
+          cumulative : cumulative - data[d],
+          cluster_num: parseInt(d)+1,
+          label : 'cluster: '+ (parseInt(d)),
+          percent: data[d]*100/total_counts,
+        }
+      })
+
+      config = {
+        f: d3.format('.2f'),
+        margin: {top: 0, right: 20, bottom: 0, left: 0},
+        width: d3.select('#clus_distrib_chart').node().offsetWidth,
+        height: 100,
+        barHeight: 50,
+        colors: ['#F8B195', '#FC913A', '#F67280', '#E8175D', '#C06C84', '#A7226E', '#6C5B7B', '#355C7D']
+      }
+      const {f, margin, width, height, barHeight, colors } = config
+      const w = width - margin.left - margin.right
+      const h = height - margin.top - margin.bottom
+      const halfBarHeight = barHeight / 2
+
+      const total = d3.sum(cluster_data, d => d.value)
+      const xScale = d3.scaleLinear()
+                        .domain([0, total])
+                        .range([0, w])
+
+      var dis_chart = d3.select("#clus_distrib_chart").append('svg')
+                        .attr('width', width).attr('height', height)
+                        .append('g').attr('transform', 'translate('+margin.left+','+margin.top+')')
+
+      dis_chart.selectAll('rect')
+        .data(cluster_data)
+        .enter().append('rect')
+        .attr('class', d=> 'rect-stacked_'+d.cluster_num)
+        .attr('x', d => xScale(d.cumulative))
+        .attr('y', h / 2 - halfBarHeight)
+        .attr('height', barHeight)
+        .attr('width', d => xScale(d.value))
+        .style('fill', (d, i) => colors[i])
+        .style("opacity", .8)
+
+      // add values on bar
+      dis_chart.selectAll('.text-value')
+        .data(cluster_data)
+        .enter().append('text')
+        .attr('class', d=> 'text-value_'+d.cluster_num)
+        .attr('text-anchor', 'middle')
+        .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
+        .attr('y', (h / 2) + 5)
+        .text(d => d.value)
+
+      // add some labels for percentages
+      dis_chart.selectAll('.text-percent')
+        .data(cluster_data)
+        .enter().append('text')
+        .attr('class', d => 'text-percent_'+d.cluster_num)
+        .attr('text-anchor', 'middle')
+        .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
+        .attr('y', (h / 2) - (halfBarHeight * 1.1))
+        .text(d => f(d.percent) + ' %')
+
+      // add the labels
+      dis_chart.selectAll('.text-label')
+        .data(cluster_data)
+        .enter().append('text')
+        .attr('class', d => 'text-label_'+d.cluster_num)
+        .attr('text-anchor', 'middle')
+        .attr('x', d => xScale(d.cumulative) + (xScale(d.value) / 2))
+        .attr('y', (h / 2) + (halfBarHeight * 1.1) + 20)
+        .style('fill', (d, i) => colors[i])
+        .text(d => d.label)
+      var distrib_ind = d3.select('#distrib_ind')
+                        .style('height', h+'px')
+                        .style('top', (h / 2) + (halfBarHeight * 1.1)+'px')
+                        .style('opacity', 0.2)
+                        .style('width', d3.select('rect').attr('width')+'px')
+      var indicat_origin_x = parseInt(d3.select('#hbar_container').node().offsetWidth)
+      var indicat_origin_y = distrib_ind.attr('y')
+
+      // click event handler
+      var move_indicator = (d)=>{
+        let topic_num = d3.select(d).attr('class').split('_')[1]
+        selectedTopic = d3.select('.rect-stacked_'+ topic_num)
+        d3.select('#distrib_ind').style('left', (indicat_origin_x+parseInt(selectedTopic.attr('x')))+'px')
+                                .style('width', (parseInt(selectedTopic.attr('width'))+2)+'px')
+
+        selected_topic_num = topic_num
+        change_hbar(topic_num)
+        change_table(topic_num)
+        initializeEntitiesCount()
+        d3.select('#entities_render').html("")
+      }
+
+      dis_chart.selectAll('rect').on('click', function(){
+        move_indicator(this)
+      })
+      dis_chart.selectAll('text').on('click', function(){
+        move_indicator(this)
+      })
+    }
+
+    function change_hbar(topic_num){
+      hbarCanvas.selectAll('svg').remove()
+      initializeHBarChart(bar_json['Topic'+topic_num].slice(0, 15), bar_json.max_width)
+    }
+
+    function change_table(topic_num){
+      filteredData = tableData.filter((d)=>{return d[column_type]==parseInt(topic_num)-1})
+
+      $("#jqGrid").jqGrid('clearGridData')
+                  .jqGrid('setGridParam', {
+                      datatype: 'local',
+                      data: filteredData
+                  }).trigger("reloadGrid");
+    }
+</script>
+</html>

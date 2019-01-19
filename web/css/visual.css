@@ -1,0 +1,158 @@
+#container {
+    width: 100%;
+    margin: 0px auto;
+}
+
+#layout-header {
+    /* margin-bottom: 20px; */
+}
+
+#layout-hbar {
+    width: 300px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-top: 10px;
+    float: left;
+}
+
+#layout-output {
+    width: calc(100% - 350px);
+    padding: 20px;
+    margin-bottom: 20px;
+    float: left;
+}
+
+#layout-scatter {
+    width: 100%;
+    margin-bottom: 20px;
+    float: left;
+}
+
+#layout-table {
+    width: 100%;
+    float: left;
+}
+
+.layout-scatter {
+    border: 1px solid #555352;
+}
+
+text {
+    fill: #555352;
+    color: #555352;
+    font: 11px sans-serif;
+    text-anchor: middle;
+}
+
+.cell rect {
+    fill: white;
+}
+
+.header rect {
+    fill: white;
+}
+
+.resetButton {
+    text-align: center;
+    width: 129px;
+    border: 1px solid;
+    float: right;
+    background-color: #F67280;
+    color: #FFFFFF;
+    overflow: hidden;
+    border-radius: 0.4rem;
+    padding: 5px;
+    margin-right: 1%;
+}
+
+.radioGroup {
+    width: 241px;
+    display: inline-flex;
+    border: 1px solid;
+    position: relative;
+    background-color: #F8B195;
+    color: #FFFFFF;
+    overflow: hidden;
+    border-radius: 0.4rem;
+    margin: 0px 0px 10px 0px;
+}
+
+.radioGroup>input[type="radio"] {
+    display: none;
+}
+
+.radioGroup>label {
+    width: 80px;
+    padding: 0.5rem;
+    display: block;
+    z-index: 2;
+    margin-bottom: 0;
+    text-align: center;
+    box-shadow: 0px 0px 1px rgba(255, 255, 255, 0.3);
+}
+
+.indicator {
+    display: inline-flex;
+    position: absolute;
+    height: 100%;
+    width: 80px;
+    background-color: #F67280;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    transition: all ease 0.5s;
+}
+
+.mark {
+  background: #7aecec;
+  padding: 0.45em 0.6em;
+  margin: 0 0.25em;
+  line-height: 1;
+  border-radius: 0.35em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.mark_span{
+  font-size: 0.8em;
+  font-weight: bold;
+  line-height: 1;
+  border-radius: 0.35em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+a,
+a:link,
+h1:link,
+h2:link,
+h3:link,
+h4:link,
+h5:link,
+h6:link,
+a:hover,
+h1:hover,
+h2:hover,
+h3:hover,
+h4:hover,
+h5:hover,
+h6:hover,
+a:focus,
+h1:focus,
+h2:focus,
+h3:focus,
+h4:focus,
+h5:focus,
+h6:focus,
+a:visited,
+h1:visited,
+h2:visited,
+h3:visited,
+h4:visited,
+h5:visited,
+h6:visited {
+    color: #000000;
+    text-align: center;
+    text-decoration: none;
+}

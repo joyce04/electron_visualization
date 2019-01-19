@@ -1,0 +1,42 @@
+<html>
+<head>
+	<script>window.$ = window.jQuery = require('jquery');</script>
+	<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+</head>
+<style>
+	html {
+		/* background: url('../web/resource/main-page.png') no-repeat fixed; */
+		background-color: #355C7D;
+		-webkit-background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		background-size: cover;
+	}
+</style>
+<script>
+	function get_flask_status() {
+        $.ajax({
+            url: 'http://localhost:5000/main',
+            type: 'GET',
+            success: function(res) {
+                location.replace("http://localhost:5000/main");
+            },
+            error: function(error){
+				console.log('Starting...');
+				setTimeout(function () {
+					get_flask_status();
+				}, 10000);
+            }
+        })
+    }
+
+	window.onload = function () {
+		// due to importing issues and futher pip install for required packages, wait for 2 sec before moving to main page.
+		get_flask_status();
+	}
+</script>
+
+<body>
+</body>
+
+</html>

@@ -1,0 +1,221 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/ui.jqgrid-bootstrap.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/basic.css') }}" />
+    <style>
+        html {
+            /* background: url('../web/resource/main-page.png') no-repeat fixed; */
+            background-color: #355C7D;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        body {
+            background-color: transparent;
+        }
+    </style>
+
+    <script>window.$ = window.jQuery = require('jquery');</script>
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/i18n/grid.locale-en.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static',filename='app/js/jquery.jqGrid.min.js') }}"></script>
+    <script>
+        $.jgrid.defaults.width = 1180;
+        $.jgrid.defaults.responsive = true;
+        $.jgrid.defaults.styleUI = 'Bootstrap';
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelector("html").classList.add('js');
+
+            var fileInput = document.querySelector(".input-file");
+            var upload_button = document.querySelector(".input-file-trigger");
+            var the_return = document.querySelector(".file-return");
+            var run_button = document.querySelector(".run-button")
+            // var run_button2 = document.querySelector(".run-button-trigger")
+
+            upload_button.addEventListener("click", function (event) {
+                fileInput.focus();
+                return false;
+            });
+            fileInput.addEventListener("change", function (event) {
+                document.getElementById("upload_file_form").submit();
+            });
+
+            run_button.addEventListener("click", function (event) {
+                document.getElementById("run_model_form").submit();
+            })
+
+            // run_button2.addEventListener("click", function (event) {
+            //     document.getElementById("run_model_form").submit();
+            // })
+
+        }, false);
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var fext = '{{ fext }}';
+
+            if ('{{ flag }}' === 'init') {
+                $('#upload_file').css("display", "");
+                $('#run_model').css("display", "none");
+            } else if ('{{ flag }}' === 'upload') {
+                $('#upload_file').css("display", "none");
+                $('#run_model').css("display", "");
+            }
+
+            if (fext == 'csv' || fext == 'tsv') {
+                var data = {{ data | tojson }};
+                var fname = '{{ fname }}'
+
+                var columns = '{{ column }}';
+                columns = columns.replace('[', '').replace(']', '').split(',');
+
+                var options = ''
+                for(var i=0; i < columns.length; i++) {
+                    options += '<option value="'+ columns[i].replace(/&#39;/g, '').trim() + '">' + columns[i].replace(/&#39;/g, '').trim() + '</option>';
+                }
+
+                $('#target_column').append(options)
+
+                var colw = '{{ colw }}'
+                colw = colw.replace('[', '').replace(']', '').split(',');
+
+                var colModel = [];
+
+                for (i = 0; i < columns.length; i++) {
+                    colModel.push({
+                        label: columns[i].replace(/&#39;/g, '').trim(),
+                        name: columns[i].replace(/&#39;/g, '').trim(),
+                        width: colw[i]
+                    });
+                }
+
+                $("#jqGrid").jqGrid({
+                    data: data.rows,
+                    datatype: "local",
+                    colModel: colModel,
+                    viewrecords: true,
+                    height: 250,
+                    rowNum: 6,
+                    autowidth: true,
+                    shrinktofit: true,
+                    pager: "#jqGridPager",
+                    caption: fname
+                });
+
+			    $('#jqGrid').jqGrid('navGrid',"#jqGridPager", {
+                    search: false,
+                    add: false,
+                    edit: false,
+                    del: false,
+                    view: true,
+                    refresh: true
+                },
+                {}, // edit options
+                {}, // add options
+                {}, // delete options
+                {} // search options - define multiple search
+                );
+            } else {
+                var recent = '{{ recent }}'
+                recent = recent.replace('[', '').replace(']', '').split('&#39;,');
+                var recent_models = ''
+                var model_date = ''
+                for (var i=0; i < recent.length/2; i++) {
+                    model_name = recent[i + recent.length/2].replace(/&#39;/g, '').replace('.pkl', '').trim()
+                    model_file = recent[i].replace(/&#39;/g, '').replace('.pkl', '').trim()
+
+                    if (model_date != model_name.split(',')[1].trim()) {
+                        model_date = model_name.split(',')[1].trim()
+                        recent_models += '<br/><h5>[' + model_date + ']</h5>'
+                    }
+
+                    recent_models += '<h6><a href=/load_model/' + model_file + '>' + model_name + '</a></h6>';
+                }
+
+                $('#recent_models').append(recent_models)
+            };
+        });
+    </script>
+</head>
+
+<body>
+    <table style="width: 100%; height: 100%;">
+        <tr style="height: 10%">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center;"></td>
+            <td style="width: 10%; text-align: center;"></td>
+        </tr>
+        <tr style="height: 60%">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center; background: rgba(225, 225, 225, .8)">
+                <div style="height: 100%; overflow-y: scroll">
+                    <table style="width: 100%; height: 100%;">
+                        <tr style=" height: 15%">
+                            <td style="text-align: center;">
+                                <h3><b><a href='/main' style="color:#555352">Comparing Topic Modeling and Document Clustering</a></b></h3>
+                            </td>
+                        </tr>
+                        <tr style="height: 10%">
+                            <td style="padding: 10px; vertical-align: top; color:#C06C84;">
+                                <div id="upload_file">
+                                    <form id="upload_file_form" action="/upload_file" method="post" enctype="multipart/form-data" style="color:#C06C84">
+                                        <div class="input-file-container" style="background-color:#C06C84;">
+                                            <input class="input-file" id="file" name="file" type="file">
+                                            <label tabindex="0" for="file" class="input-file-trigger" >Select a file...</label>
+                                        </div>
+                                    </form>
+                                    <br /><br />
+                                    <h4 style="color:#555352"><b>Recent Models</b></h4>
+                                    <h5>(Model Name: Cluster size, Run Date, Seq)</h5>
+                                    <div id='recent_models'></div>
+                                </div>
+                                <div id='run_model' style='display: none'>
+                                    <form id="run_model_form" action='/prepare_model' method='post'>
+                                        <input type="hidden" name="fname" value="{{ fname }}" />
+                                        <input type="hidden" name="fext" value="{{ fext }}" />
+                                        <table style="width: 100%;">
+                                            <tr>
+                                                <td style="text-align: center; width: 20%">
+                                                    <label>Number of Cluster</label>
+                                                    <input type="text" name="k" required maxlength="2" size="5" placeholder="8"/>
+                                                </td>
+                                                <td style="text-align: center; width: 20%;">
+                                                    <select id='target_column' name="target_column" class='model-target-selection'></select>
+                                                </td>
+                                                <td>
+                                                    <button class='run-button' style="width:100%;">Run Model...</button>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr style="height: 75%">
+                            <td>
+                                <div id="grid_area">
+                                    <table id="jqGrid"></table>
+                                    <div id="jqGridPager"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td style="width: 10%; text-align: center;"></td>
+        </tr>
+        <tr style="height: 10%">
+            <td style="width: 10%; text-align: center;"></td>
+            <td style="width: 80%; text-align: center;"></td>
+            <td style="width: 10%; text-align: center;"></td>
+        </tr>
+    </table>
+</body>
+
+</html>
