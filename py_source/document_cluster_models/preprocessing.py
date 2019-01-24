@@ -33,6 +33,7 @@ def preprocess(fname, fext, target_column_name):
     documents = origin_data[[target_column_name]].reset_index()
     documents = documents[['index', target_column_name]]
     documents.columns = ['id', 'document']
+    documents.document = documents.document.astype('str')
 
     ## Preprocess
     processed_docs = documents['document'].map(lemmatize_stemming)

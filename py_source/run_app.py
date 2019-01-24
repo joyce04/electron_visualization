@@ -88,10 +88,10 @@ def upload_file():
 	fext = f.filename.split('.')[1]
 
 	if fext == 'csv':
-		df = pd.read_csv(f, index_col=0).reset_index(drop=True)
+		df = pd.read_csv(f).reset_index(drop=True)
 		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
 	elif fext == 'tsv':
-		df = pd.read_csv(f, sep='\t', index_col=0).reset_index(drop=True)
+		df = pd.read_csv(f, sep='\t').reset_index(drop=True)
 		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
 	elif fext == 'pkl':
 		saved_model = pickle.load(f)
