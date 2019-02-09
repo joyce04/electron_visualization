@@ -17,8 +17,8 @@ def get_vis_data(X, processed_docs, centers, labels):
 
     return vis_data
 
-def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, km_labels, dec_vis_data, dec_labels):
-
+# def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, km_labels, dec_vis_data, dec_labels):
+def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, lda_metrics, km_vis_data, km_labels, km_metrics, dec_vis_data, dec_labels, dec_metrics):
     # def intersect(a, b):
     #     return len(list(set(a) & set(b)))
 
@@ -106,6 +106,18 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
         write_json_to_file('./Visualization/res/document_table.json', json_data)
         return  json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', '')), merged_result, km_lda_topic_map, dec_lda_topic_map
 
+    def get_metrics_json(lda_metrics, km_metrics, dec_metrics):
+        metric_labels = ['Calinski-Harabasz', 'Silhouette', 'S_Dbw', 'Compactness', 'Seperation']
+
+        json_data = collections.OrderedDict()
+        json_data['labels'] = metric_labels
+
+        for i, m in enumerate(metric_labels):
+            json_data[m] = [lda_metrics[i], km_metrics[i], dec_metrics[i]]
+
+        write_json_to_file('./Visualization/res/metrics.json', json_data)
+        return json.loads(json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', ''))
+
     document_table_json, mapped_documents, km_lda_topic_map, dec_lda_topic_map = get_merged_table_json(documents, lda_labels, km_labels, dec_labels)
 
     lda_hbar_json = get_hbar_chart_json(lda_vis_data, 'lda', None)
@@ -117,4 +129,6 @@ def get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_
     dec_hbar_json = get_hbar_chart_json(dec_vis_data, 'dec', dec_lda_topic_map)
     dec_scatter_json = get_scatter_chart_json(mapped_documents, 'dec')
 
-    return lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json
+    metrics_json = get_metrics_json(lda_metrics, km_metrics, dec_metrics)
+
+    return lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json

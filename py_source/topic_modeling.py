@@ -2,6 +2,7 @@ from document_cluster_models import *
 from visualize import *
 from vectorize import *
 from visualize import *
+from cluster_validation_metrics import *
 
 def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target_column_name='Origin_Text', train_flag=True):
     # Import Libraries
@@ -32,10 +33,14 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     for i in range(len(documents)):
         lda_labels.append(np.argmax(lda_data['doc_topic_dists'][i]))
 
+    lda_metrics = get_validation_metrics(pd.DataFrame(lda_labels, columns=['topic']), tsne_data)
+
     ## K-Means
     kmeans_model = kmeans.run(cluster_K, tsne_data)
     km_labels = kmeans_model.labels_
     km_vis_data = get_vis_data(normalize(tsne_data, norm='l2'), processed_docs, kmeans_model.cluster_centers_, km_labels)
+    
+    km_metrics = get_validation_metrics(pd.DataFrame(km_labels, columns=['topic']), tsne_data)
 
     ## DEC
     dec_labels = dec.run(cluster_K, tsne_data)
@@ -44,9 +49,10 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     x_data['y'] = dec_labels
     dec_vis_data = get_vis_data(tsne_data, processed_docs, x_data.groupby('y').mean().reset_index().values[:, 1:], dec_labels)
 
+    dec_metrics = get_validation_metrics(pd.DataFrame(dec_labels, columns=['topic']), tsne_data)
 
     ## Visualization
-    return get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, km_vis_data, km_labels, dec_vis_data, dec_labels)
+    return get_visualization_json(cluster_K, documents, tsne_result, lda_vis_data, lda_labels, lda_metrics, km_vis_data, km_labels, km_metrics, dec_vis_data, dec_labels, dec_metrics)
 
 def load_topic_modeling(saved_model):
     # Import Libraries
@@ -92,6 +98,8 @@ def load_topic_modeling(saved_model):
         for i in range(len(documents)):
             lda_labels.append(np.argmax(lda_result['doc_topic_dists'].values[i]))
 
+    lda_metrics = get_validation_metrics(pd.DataFrame(lda_labels, columns=['topic']), tsne_data)
+
     # K-Means
     kmeans_result = saved_model['kmeans_result']
     if type(kmeans_result) == sklearn.cluster.k_means_.KMeans:
@@ -103,6 +111,7 @@ def load_topic_modeling(saved_model):
 
     km_vis_data = get_vis_data(normalize(tsne_data, norm='l2'), processed_docs, kmeans_centers, kmeans_labels)
 
+    km_metrics = get_validation_metrics(pd.DataFrame(kmeans_labels, columns=['topic']), tsne_data)
 
     # DEC
     dec_labels = saved_model['dec_result']
@@ -111,8 +120,10 @@ def load_topic_modeling(saved_model):
     x_data['y'] = dec_labels
     dec_vis_data = get_vis_data(tsne_data, processed_docs, x_data.groupby('y').mean().reset_index().values[:, 1:], dec_labels)
 
+    dec_metrics = get_validation_metrics(pd.DataFrame(dec_labels, columns=['topic']), tsne_data)
+
     ## Visualization
     umap_data = run_umap(tsne_data)
 
     ## Visualization
-    return get_visualization_json(len(np.unique(lda_labels)), documents, umap_data, lda_vis_data, lda_labels, km_vis_data, kmeans_labels, dec_vis_data, dec_labels)
+    return get_visualization_json(len(np.unique(lda_labels)), documents, umap_data, lda_vis_data, lda_labels, lda_metrics, km_vis_data, kmeans_labels, km_metrics, dec_vis_data, dec_labels, dec_metrics)
