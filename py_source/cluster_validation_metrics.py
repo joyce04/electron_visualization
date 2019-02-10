@@ -15,7 +15,8 @@ def calinski_harabasz_index(input_df, tsne_data):
     for i in range(k):
         cluster_center = np.mean(tsne_data[input_df[input_df.topic == i].apply(lambda x: x.name, axis=1)], axis=0)
         for p in tsne_data[input_df[input_df.topic == i].apply(lambda x: x.name, axis=1)]:
-            wgss += math.pow(distance.cosine(cluster_center, p), 2)
+            if sum(p) > 0:
+                wgss += math.pow(distance.cosine(cluster_center, p), 2)
         bgss += math.pow(distance.cosine(whole_center, cluster_center), 2)
     seperation = bgss / (k-1)
     compactness = wgss / (n-k)
