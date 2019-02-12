@@ -127,8 +127,31 @@ def save_model_outputs(outputs, fname, cluster_K):
 		pickle.dump(outputs, f)
 	f.close()
 
+@app.route('/upload_custom_entity', methods=['POST'])
+def upload_custom_entity():
+	fname = request.form['fname']
+	fext = request.form['fext']
+	target_column_name = request.form['target_column']
+	cluster_K = request.form['k']
+
+	return render_template('custom_entity.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
+
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
+	entity_flag = request.form['entity_flag']
+
+	if entity_flag == 'true':
+		f = request.files['file']
+		ename = f.filename.split('.')[0]
+		eext = f.filename.split('.')[1]
+
+		if eext == 'csv':
+			df = pd.read_csv(f).reset_index(drop=True)
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (ename, eext)))
+		elif eext == 'tsv':
+			df = pd.read_csv(f, sep='\t').reset_index(drop=True)
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (ename, eext)), sep='\t')
+
 	fname = request.form['fname']
 	fext = request.form['fext']
 	target_column_name = request.form['target_column']

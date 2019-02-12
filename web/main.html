@@ -176,7 +176,7 @@
                                     <div id='recent_models'></div>
                                 </div>
                                 <div id='run_model' style='display: none'>
-                                    <form id="run_model_form" action='/prepare_model' method='post'>
+                                    <form id="run_model_form" action='/upload_custom_entity' method='post'>
                                         <input type="hidden" name="fname" value="{{ fname }}" />
                                         <input type="hidden" name="fext" value="{{ fext }}" />
                                         <table style="width: 100%;">
@@ -189,7 +189,7 @@
                                                     <select id='target_column' name="target_column" class='model-target-selection'></select>
                                                 </td>
                                                 <td>
-                                                    <button class='run-button' style="width:100%;">Run Model...</button>
+                                                    <button class='run-button' style="width:100%;">Next</button>
                                                 </td>
                                             </tr>
                                         </table>
