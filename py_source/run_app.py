@@ -89,10 +89,10 @@ def upload_file():
 
 	if fext == 'csv':
 		df = pd.read_csv(f).reset_index(drop=True)
-		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
+		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), index=False)
 	elif fext == 'tsv':
 		df = pd.read_csv(f, sep='\t').reset_index(drop=True)
-		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
+		df.to_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t', index=False)
 	elif fext == 'pkl':
 		saved_model = pickle.load(f)
 		with open(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), 'wb') as f:
@@ -139,23 +139,25 @@ def upload_custom_entity():
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
 	entity_flag = request.form['entity_flag']
+	fname = request.form['fname']
+	fext = request.form['fext']
+	target_column_name = request.form['target_column']
+	cluster_K = request.form['k']	
 
 	if entity_flag == 'true':
 		f = request.files['file']
 		ename = f.filename.split('.')[0]
 		eext = f.filename.split('.')[1]
+		er_algo = request.form['er_algo']
 
 		if eext == 'csv':
 			df = pd.read_csv(f).reset_index(drop=True)
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (ename, eext)))
+			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=['entity_term', 'entity_name']))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (fname, eext)), index=False)
 		elif eext == 'tsv':
 			df = pd.read_csv(f, sep='\t').reset_index(drop=True)
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (ename, eext)), sep='\t')
-
-	fname = request.form['fname']
-	fext = request.form['fext']
-	target_column_name = request.form['target_column']
-	cluster_K = request.form['k']
+			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=['entity_term', 'entity_name']))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (fname, eext)), sep='\t', index=False)
 
 	return render_template('load.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
 

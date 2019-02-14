@@ -50,6 +50,9 @@
             })
 
         }, false);
+        function er_algo(val) {
+            document.getElementById("er_algo").value = val
+        }
     </script>
 </head>
 
@@ -66,12 +69,29 @@
                 <div style="height: 100%; overflow-y: scroll">
                     <table style="width: 100%; height: 100%;">
                         <tr style=" height: 15%">
-                            <td style="text-align: center;">
+                            <td colspan="3" style="text-align: center;">
                                 <h3><b><a href='/main' style="color:#555352">Comparing Topic Modeling and Document Clustering</a></b></h3>
                             </td>
                         </tr>
-                        <tr style="height: 85%">
-                            <td style="padding: 10px; vertical-align: top; color:#C06C84; width:50%">
+                        <tr style="height: 10%">
+                            <td colspan="3" style="padding: 10px">
+                                #To recognize specific entity, you have to upload dictionary file that has terms with entity name and choose the algorithm to recognize entity.</br>
+                                If you want to run without sepcific entity, press run button.
+                            </td>
+                        </tr>
+                        <tr style="height: 65%">
+                            <td style="padding: 10px; vertical-align: bottom">
+                                <label>Entity Recognition Algorithm</label>
+                                <select class='model-target-selection' onchange="er_algo(this.value)">
+                                    <option value="ahocorasick">Ahocorasick</option>
+                                    <option value="flashtext">Flash Text</option>
+                                </select>
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr style="height: 10%">
+                            <td style="width: 60%" />
+                            <td style="padding: 10px; vertical-align: top; color:#C06C84; width:20%">
                                 <div id="upload_file">
                                     <form id="upload_file_form" action="/prepare_model" method="post" enctype="multipart/form-data" style="color:#C06C84">
                                         <div class="input-file-container" style="background-color:#C06C84;">
@@ -80,13 +100,14 @@
                                             <input type="hidden" name="k" value="{{ k }}"/>
                                             <input type="hidden" name="target_column" value="{{ target_column }}">
                                             <input type="hidden" name="entity_flag" value="true">
+                                            <input id="er_algo" type="hidden" name="er_algo" value="ahocorasick">
                                             <input class="input-file" id="file" name="file" type="file">
-                                            <label tabindex="0" for="file" class="input-file-trigger" >Select a file...</label>
+                                            <label tabindex="0" for="file" class="input-file-trigger" >Upload</label>
                                         </div>
                                     </form>
                                 </div>
                             </td>
-                            <td style="padding: 10px; vertical-align: top; color:#F67280; width:50%">
+                            <td style="padding: 10px; vertical-align: top; color:#F67280; width:20%">
                                 <div>
                                     <form id="run_model_form" action='/prepare_model' method='post'>
                                         <div class="input-file-container" style="background-color:#F67280;">
@@ -95,7 +116,7 @@
                                             <input type="hidden" name="k" value="{{ k }}"/>
                                             <input type="hidden" name="target_column" value="{{ target_column }}">
                                             <input type="hidden" name="entity_flag" value="false">
-                                            <button class='run-button' style="width:100%;">Run Model ...</button>
+                                            <button class='run-button'>Run</button>
                                         </div>
                                     </form>
                                 </div>

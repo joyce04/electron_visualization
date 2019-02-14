@@ -63,9 +63,11 @@
             if ('{{ flag }}' === 'init') {
                 $('#upload_file').css("display", "");
                 $('#run_model').css("display", "none");
+                $('#next_button').css("display", "none");
             } else if ('{{ flag }}' === 'upload') {
                 $('#upload_file').css("display", "none");
                 $('#run_model').css("display", "");
+                $('#next_button').css("display", "");
             }
 
             if (fext == 'csv' || fext == 'tsv') {
@@ -156,7 +158,7 @@
             <td style="width: 80%; text-align: center; background: rgba(225, 225, 225, .8)">
                 <div style="height: 100%; overflow-y: scroll">
                     <table style="width: 100%; height: 100%;">
-                        <tr style=" height: 15%">
+                        <tr style=" height: 10%">
                             <td style="text-align: center;">
                                 <h3><b><a href='/main' style="color:#555352">Comparing Topic Modeling and Document Clustering</a></b></h3>
                             </td>
@@ -164,6 +166,7 @@
                         <tr style="height: 10%">
                             <td style="padding: 10px; vertical-align: top; color:#C06C84;">
                                 <div id="upload_file">
+                                    <h4 style="color:#555352"># To run model, you have to upload raw dataset including target text field</h4>
                                     <form id="upload_file_form" action="/upload_file" method="post" enctype="multipart/form-data" style="color:#C06C84">
                                         <div class="input-file-container" style="background-color:#C06C84;">
                                             <input class="input-file" id="file" name="file" type="file">
@@ -171,7 +174,8 @@
                                         </div>
                                     </form>
                                     <br /><br />
-                                    <h4 style="color:#555352"><b>Recent Models</b></h4>
+                                    <h4 style="color:#555352"># If you want to see the model that you already run recently, choose the model below</h4></br>
+                                    <h5 style="color:#555352">Recent Models</h5>
                                     <h5>(Model Name: Cluster size, Run Date, Seq)</h5>
                                     <div id='recent_models'></div>
                                 </div>
@@ -179,6 +183,7 @@
                                     <form id="run_model_form" action='/upload_custom_entity' method='post'>
                                         <input type="hidden" name="fname" value="{{ fname }}" />
                                         <input type="hidden" name="fext" value="{{ fext }}" />
+                                        <h4 style="color:#555352"># Choose the target text column and the number of clusters</h4></br>
                                         <table style="width: 100%;">
                                             <tr>
                                                 <td style="text-align: center; width: 20%">
@@ -186,10 +191,10 @@
                                                     <input type="text" name="k" required maxlength="2" size="5" placeholder="8"/>
                                                 </td>
                                                 <td style="text-align: center; width: 20%;">
+                                                    <label>Target column</label>
                                                     <select id='target_column' name="target_column" class='model-target-selection'></select>
                                                 </td>
-                                                <td>
-                                                    <button class='run-button' style="width:100%;">Next</button>
+                                                <td style="width: 60%%">
                                                 </td>
                                             </tr>
                                         </table>
@@ -197,11 +202,18 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr style="height: 75%">
+                        <tr style="height: 65%">
                             <td>
                                 <div id="grid_area">
                                     <table id="jqGrid"></table>
                                     <div id="jqGridPager"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="height: 10%; text-align: right;">
+                                <div id="next_button">
+                                    <button class='run-button' style="width:20%;">Next</button>
                                 </div>
                             </td>
                         </tr>
