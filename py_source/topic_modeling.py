@@ -4,7 +4,7 @@ from vectorize import *
 from visualize import *
 from cluster_validation_metrics import *
 
-def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target_column_name='Origin_Text', train_flag=True):
+def run_topic_modeling(cluster_K = 8, file_name='mallet_top_sen', file_extension='tsv', target_column_name='Origin_Text', train_flag=True):
     # Import Libraries
     import pandas as pd
     import numpy as np
@@ -14,7 +14,7 @@ def run_topic_modeling(cluster_K = 8, fname='mallet_top_sen', fext='tsv', target
     from vectorize import run_tsne
 
     ## Load Raw Data
-    documents, processed_docs = preprocessing.preprocess(fname, fext, target_column_name)
+    documents, processed_docs = preprocessing.preprocess(file_name, file_extension, target_column_name)
     tsne_data, tsne_result = run_tsne(processed_docs)
 
     ## LDA

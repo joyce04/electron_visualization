@@ -16,17 +16,9 @@
 
 <body>
 	{% if fext == 'pkl' %}
-		<form id="run_model_form" action='/import_model' method='post'>
-			<input type="hidden" name="fname" value="{{ fname }}" />
-			<input type="hidden" name="fext" value="{{ fext }}" />
-		</form>
+		<form id="run_model_form" action='/import_model' method='post' />
 	{% else %}
-		<form id="run_model_form" action='/run_model' method='post'>
-			<input type="hidden" name="fname" value="{{ fname }}" />
-			<input type="hidden" name="fext" value="{{ fext }}" />
-			<input type="hidden" name="target_column" value="{{ target_column }}" />
-			<input type="hidden" name="k" value="{{ k }}" />
-		</form>
+		<form id="run_model_form" action='/run_model' method='post' />
 	{% endif %}
 </body>
 

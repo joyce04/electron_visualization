@@ -181,16 +181,14 @@
                                 </div>
                                 <div id='run_model' style='display: none'>
                                     <form id="run_model_form" action='/upload_custom_entity' method='post'>
-                                        <input type="hidden" name="fname" value="{{ fname }}" />
-                                        <input type="hidden" name="fext" value="{{ fext }}" />
                                         <h4 style="color:#555352">Choose the target text column and the number of clusters</h4></br>
                                         <table style="width: 100%;">
                                             <tr>
-                                                <td style="text-align: center; width: 20%">
+                                                <td style="text-align: center; width: 30%">
                                                     <label>Number of Cluster</label>
                                                     <input type="text" name="k" required maxlength="2" size="5" placeholder="8"/>
                                                 </td>
-                                                <td style="text-align: center; width: 20%;">
+                                                <td style="text-align: center; width: 30%;">
                                                     <label>Target column</label>
                                                     <select id='target_column' name="target_column" class='model-target-selection'></select>
                                                 </td>

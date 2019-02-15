@@ -14,18 +14,18 @@ def lemmatize_stemming(text):
             result.append(SnowballStemmer('english').stem(WordNetLemmatizer().lemmatize(token, pos='v')))
     return result
 
-def preprocess(fname, fext, target_column_name):
+def preprocess(file_name, file_extension, target_column_name):
 
     np.random.seed(2018)
     random.seed(2018)
     nltk.download('wordnet')
 
-    if fext == 'csv':
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)))
-    elif fext == 'tsv':
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), '%s.%s' % (fname, fext)), sep='\t')
+    if file_extension == 'csv':
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'data_files', '%s.%s' % (file_name, file_extension)))
+    elif file_extension == 'tsv':
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'data_files', '%s.%s' % (file_name, file_extension)), sep='\t')
     else:
-        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'mallet_top_sen.tsv'), sep='\t')
+        origin_data = pd.read_csv(os.path.join(os.getcwd(), 'data_files', 'mallet_top_sen.tsv'), sep='\t')
 
     # train_flag = False
 
