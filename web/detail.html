@@ -86,7 +86,7 @@
     var document_table_json = {{ document_table_json | tojson }};
     var distrib_json = {{ distrib_json | tojson}};
     var column_type = 'topic_'+type
-    var selected_topic_num = 0
+    var selected_topic_num = 1
     var entities_count = []
 
     function get_entity(text) {
@@ -145,6 +145,7 @@
                         'TIME':['#bfe1d9', 'Time'], 'WORK_OF_ART':['#f0d0ff', 'Titles of books, songs']}
 
     function initializeEntitiesCount(){
+      // console.log(entities_count)
       entities = entities_count.filter((d)=>{return d['cluster']==selected_topic_num-1})
       // console.log(entities)
 
@@ -161,6 +162,7 @@
           d3.select('#entities_div').append('br')
           d3.select('#entities_div').append('br')
       }
+
       origin_display = d3.select('#entities_container').style('display')
       d3.select('#entities_container').style('display', 'none')
       d3.select('#entities_container').style('display', origin_display)

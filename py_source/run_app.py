@@ -1,12 +1,13 @@
 # -- coding: utf-8 --
 
-from flask import Flask, request, render_template, jsonify, escape
+from flask import Flask, request, render_template, jsonify, escape, g
 import pandas as pd
 import json
 import collections
 import os
 import pickle
 import spacy
+# import sqlite3
 
 from spacy import displacy
 from datetime import datetime
@@ -139,27 +140,33 @@ def upload_custom_entity():
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
 	entity_flag = request.form['entity_flag']
-	fname = request.form['fname']
-	fext = request.form['fext']
-	target_column_name = request.form['target_column']
-	cluster_K = request.form['k']	
+	global file_name
+	file_name = request.form['fname']
+	global file_ext
+	file_ext = request.form['fext']
 
+	target_column_name = request.form['target_column']
+	cluster_K = request.form['k']
+
+	ENTITY_HEADERS = ['entity_term', 'entity_type']
 	if entity_flag == 'true':
 		f = request.files['file']
-		ename = f.filename.split('.')[0]
-		eext = f.filename.split('.')[1]
+		global entity_file_name
+		entity_file_name = f.filename.split('.')[0]
+		global entity_file_ext
+		entity_file_ext = f.filename.split('.')[1]
 		er_algo = request.form['er_algo']
 
-		if eext == 'csv':
-			df = pd.read_csv(f).reset_index(drop=True)
-			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=['entity_term', 'entity_name']))
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (fname, eext)), index=False)
-		elif eext == 'tsv':
-			df = pd.read_csv(f, sep='\t').reset_index(drop=True)
-			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=['entity_term', 'entity_name']))
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (fname, eext)), sep='\t', index=False)
+		if entity_file_ext == 'csv':
+			df = pd.read_csv(f).reset_index(drop=True)[ENTITY_HEADERS]
+			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), index=False)
+		elif entity_file_ext == 'tsv':
+			df = pd.read_csv(f, sep='\t').reset_index(drop=True)[ENTITY_HEADERS]
+			df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), sep='\t', index=False)
 
-	return render_template('load.html', k = cluster_K, fname = fname, fext = fext, target_column = target_column_name)
+	return render_template('load.html', k = cluster_K, fname = file_name, fext = file_ext, target_column = target_column_name)
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
@@ -173,7 +180,8 @@ def run_model():
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json)
 	save_model_outputs(outputs, fname, cluster_K)
 
-	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json)
+	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json,
+							km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json, metrics_json = metrics_json)
 
 @app.route('/import_model', methods=['POST'])
 def import_model():
@@ -190,7 +198,8 @@ def import_model():
 	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json)
 	save_model_outputs(outputs, fname, len(lda_hbar_json['labels'])-1)
 
-	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json, metrics_json = metrics_json)
+	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json,
+							km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json, metrics_json = metrics_json)
 
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
 def load_model(model_name):
@@ -214,15 +223,22 @@ def load_detail():
 
 @app.route('/entities', methods=['POST'])
 def get_entities():
+	import numpy as np
+	# dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)))
+	# print(dic_df.loc[dic_df.shape[0]-1])
+
 	spacy.util.set_data_path('./py_source/nlp_data')
 	nlp = spacy.load('en')
-	max_len = 90000
 
 	type = 'topic_'+request.form['type']
+	# print(type)
 	docdata = json.loads(request.form['data'])
 	df_rows = pd.DataFrame(docdata['rows'])
+	# print(df_rows)
 	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
 	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
+
+	max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
 
 	ent_list = []
 	for ind, grp in df_rows.groupby(type):
@@ -232,17 +248,23 @@ def get_entities():
 		for idx, row in grp.reset_index().iterrows():
 			cum_len += row.length
 			if cum_len >= max_len :
-				sub_text = grp.iloc[start_ind:idx]['document']
+				sub_text = grp.loc[start_ind:idx]['document']
+				# print(sub_text)
 				start_ind =idx
-				cum_len = 0
-				# print(len(' '.join(sub_text.tolist())))
+
+				# print(' '.join(sub_text.tolist()))
 				doc = nlp(' '.join(sub_text.tolist()))
 
 				for ent in doc.ents:
 					if len(ent.text) >2:
 						ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
 
+	if len(ent_list) == 0:
+		for ind in range(len(df_rows[type].unique())):
+			ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})
+
 	ent_df = pd.DataFrame(ent_list).groupby(['cluster', 'label']).count()
+	print(ent_df)
 	json_data = collections.OrderedDict()
 	json_data['counts'] = ent_df.reset_index().to_dict(orient='records')
 	return json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', '')
@@ -258,7 +280,16 @@ def get_entity():
 
 	return json.dumps({ 'dochtml': dochtml }, ensure_ascii=False, indent='\t')
 
+# def init_db():
+# 	db = getattr(g, '_database', None)
+# 	if db is None:
+# 		db = g._database = sqlite3.connect(os.path.join(os.getcwd(), 'db/data.db'))
+# 	return db
+
 if __name__ == '__main__':
     print("start")
     app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)
+
+	# global db
+	# db = init_db()
     print("end")

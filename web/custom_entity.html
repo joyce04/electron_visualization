@@ -75,16 +75,17 @@
                         </tr>
                         <tr style="height: 10%">
                             <td colspan="3" style="padding: 10px">
-                                #To recognize specific entity, you have to upload dictionary file that has terms with entity name and choose the algorithm to recognize entity.</br>
-                                If you want to run without sepcific entity, press run button.
+                                To extract custom entities, you have to upload a dictionary csv file that has terms with entity name and category and choose the extraction algorithm.</br>
+                                <b>The dictionary file should include entity_term, and entity_type columns as headers.</b><br><br>
+                                If you want to run without custom entities, press run button.
                             </td>
                         </tr>
                         <tr style="height: 65%">
                             <td style="padding: 10px; vertical-align: bottom">
                                 <label>Entity Recognition Algorithm</label>
                                 <select class='model-target-selection' onchange="er_algo(this.value)">
-                                    <option value="ahocorasick">Ahocorasick</option>
-                                    <option value="flashtext">Flash Text</option>
+                                    <option value="flashText">flashText, Aho-corasick</option>
+                                    <option value="spaCy">spaCy, Entity Recognition</option>
                                 </select>
                             </td>
                             <td colspan="2"></td>
@@ -95,12 +96,12 @@
                                 <div id="upload_file">
                                     <form id="upload_file_form" action="/prepare_model" method="post" enctype="multipart/form-data" style="color:#C06C84">
                                         <div class="input-file-container" style="background-color:#C06C84;">
-                                            <input type="hidden" name="fname" value="{{ fname }}" />    
+                                            <input type="hidden" name="fname" value="{{ fname }}" />
                                             <input type="hidden" name="fext" value="{{ fext }}" />
                                             <input type="hidden" name="k" value="{{ k }}"/>
                                             <input type="hidden" name="target_column" value="{{ target_column }}">
                                             <input type="hidden" name="entity_flag" value="true">
-                                            <input id="er_algo" type="hidden" name="er_algo" value="ahocorasick">
+                                            <input id="er_algo" type="hidden" name="er_algo" value="flastext">
                                             <input class="input-file" id="file" name="file" type="file">
                                             <label tabindex="0" for="file" class="input-file-trigger" >Upload</label>
                                         </div>
