@@ -24,6 +24,7 @@ DATA_FILE_EXTENSION = 'none'
 ENTITY_DICT_NAME = ''
 ENTITY_DICT_EXTENSION = ''
 ENTITY_ALGORITHM = 'flashtext'
+ENTITY_HEADER = ['entity_type', 'entity_name']
 
 TARGET_COLUMN = ''
 NUM_OF_CLUSTER = 8
@@ -83,7 +84,6 @@ def load_entity_dictionary(f):
 		df.to_csv(os.path.join(os.getcwd(), 'entity_files', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)), sep='\t', index=False)
 	else:
 		df = pd.DataFrame(['Not Available'], columns=['Col'])
-		df = pd.DataFrame([['Not Available', '']], columns=ENTITY_HEADER)
 
 	return df
 
@@ -167,42 +167,10 @@ def upload_entity_dict():
 
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
-<<<<<<< HEAD
-	global ENTITY_DICT_EXTENSION
+	global ENTITY_DICT_EXTENSION, ENTITY_HEADER
+	# ENTITY_HEADER = [request.form['entity_type'], request.form['entity_term']]
+	# print(ENTITY_HEADER)
 	return render_template('load.html', fext = DATA_FILE_EXTENSION)
-=======
-	entity_flag = request.form['entity_flag']
-	global file_name
-	file_name = request.form['fname']
-	global file_ext
-	file_ext = request.form['fext']
-
-	target_column_name = request.form['target_column']
-	cluster_K = request.form['k']
-
-	ENTITY_HEADERS = ['entity_term', 'entity_type']
-	if entity_flag == 'true':
-		f = request.files['file']
-		global entity_file_name
-		entity_file_name = f.filename.split('.')[0]
-		global entity_file_ext
-		entity_file_ext = f.filename.split('.')[1]
-		er_algo = request.form['er_algo']
-
-		global entity_algorithm
-		entity_algorithm = er_algo
-
-		if entity_file_ext == 'csv':
-			df = pd.read_csv(f).reset_index(drop=True)[ENTITY_HEADERS]
-			# df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), index=False)
-		elif entity_file_ext == 'tsv':
-			df = pd.read_csv(f, sep='\t').reset_index(drop=True)[ENTITY_HEADERS]
-			# df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
-			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), sep='\t', index=False)
-
-	return render_template('load.html', k = cluster_K, fname = file_name, fext = file_ext, target_column = target_column_name)
->>>>>>> add flashtext mathing entity logic
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
