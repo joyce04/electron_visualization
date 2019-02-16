@@ -83,6 +83,7 @@ def load_entity_dictionary(f):
 		df.to_csv(os.path.join(os.getcwd(), 'entity_files', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)), sep='\t', index=False)
 	else:
 		df = pd.DataFrame(['Not Available'], columns=['Col'])
+		df = pd.DataFrame([['Not Available', '']], columns=ENTITY_HEADER)
 
 	return df
 
