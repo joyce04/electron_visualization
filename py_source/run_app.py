@@ -23,7 +23,7 @@ DATA_FILE_EXTENSION = 'none'
 
 ENTITY_DICT_NAME = ''
 ENTITY_DICT_EXTENSION = ''
-ENTITY_ALGORITHM = 'flashText'
+ENTITY_ALGORITHM = 'flashtext'
 
 TARGET_COLUMN = ''
 NUM_OF_CLUSTER = 8
@@ -166,8 +166,42 @@ def upload_entity_dict():
 
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
+<<<<<<< HEAD
 	global ENTITY_DICT_EXTENSION
 	return render_template('load.html', fext = DATA_FILE_EXTENSION)
+=======
+	entity_flag = request.form['entity_flag']
+	global file_name
+	file_name = request.form['fname']
+	global file_ext
+	file_ext = request.form['fext']
+
+	target_column_name = request.form['target_column']
+	cluster_K = request.form['k']
+
+	ENTITY_HEADERS = ['entity_term', 'entity_type']
+	if entity_flag == 'true':
+		f = request.files['file']
+		global entity_file_name
+		entity_file_name = f.filename.split('.')[0]
+		global entity_file_ext
+		entity_file_ext = f.filename.split('.')[1]
+		er_algo = request.form['er_algo']
+
+		global entity_algorithm
+		entity_algorithm = er_algo
+
+		if entity_file_ext == 'csv':
+			df = pd.read_csv(f).reset_index(drop=True)[ENTITY_HEADERS]
+			# df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), index=False)
+		elif entity_file_ext == 'tsv':
+			df = pd.read_csv(f, sep='\t').reset_index(drop=True)[ENTITY_HEADERS]
+			# df = df.append(pd.DataFrame([[er_algo, 'algorithm']], columns=ENTITY_HEADERS))
+			df.to_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)), sep='\t', index=False)
+
+	return render_template('load.html', k = cluster_K, fname = file_name, fext = file_ext, target_column = target_column_name)
+>>>>>>> add flashtext mathing entity logic
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
@@ -213,6 +247,33 @@ def load_detail():
 
 	return render_template('detail.html', bar_json = barjson, document_table_json = doctable, distrib_json = dist, type_json = type)
 
+def initialize_keyword_processors(entity_df):
+	from flashtext import KeywordProcessor
+
+	key_pros = {}
+	for e, r in entity_df.groupby('entity_type'):
+		key_pro = KeywordProcessor(case_sensitive=False)
+		for v in r.entity_term.values.tolist():
+			key_pro.add_keyword(v.strip())
+		key_pros[e] = key_pro
+	return key_pros
+
+# def check_matching_entities(sub_text, key_procs, is_spacy):
+# 	# c_entities = []
+# 	ents = []
+# 	for ent, pro in key_procs.items():
+# 		found = pro.extract_keywords(sub_text)
+# 		if is_spacy:
+# 			for f in found:
+
+		# else:
+
+# def get_total_matching_num(sub_text, key_procs):
+# 	found = {}
+# 	for ent, pro in key_procs.items():
+# 		found[ent] = pro.extract_keywords(sub_text)
+# 	return found
+
 @app.route('/entities', methods=['POST'])
 def get_entities():
 	import numpy as np
@@ -226,27 +287,46 @@ def get_entities():
 	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
 	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
 
-	max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
+	print(entity_algorithm)
+	key_pros = initialize_keyword_processors(dic_df)
+	if entity_file_name is not None and entity_algorithm == 'spacy':
+		dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)))
+		# print(dic_df.loc[dic_df.shape[0]-1])
 
-	ent_list = []
-	for ind, grp in df_rows.groupby(type):
-		cum_len = 0
-		start_ind = 0
+		# get_total_matching_num(sub_text, key_procs, is_spacy)
+	else:
+		max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
 
-		for idx, row in grp.reset_index().iterrows():
-			cum_len += row.length
-			if cum_len >= max_len :
-				sub_text = grp.loc[start_ind:idx]['document']
-				start_ind =idx
-				doc = nlp(' '.join(sub_text.tolist()))
+		ent_list = []
+		for ind, grp in df_rows.groupby(type):
+			cum_len = 0
+			start_ind = 0
 
-				for ent in doc.ents:
-					if len(ent.text) >2:
-						ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
+			for idx, row in grp.reset_index().iterrows():
+				cum_len += row.length
+				if cum_len >= max_len :
+					sub_text_grp = grp.loc[start_ind:idx]['document']
+					# print(sub_text)
+					start_ind =idx
+					# print(' '.join(sub_text.tolist()))
+					sub_text = ' '.join(sub_text_grp.tolist())
 
-	if len(ent_list) == 0:
-		for ind in range(len(df_rows[type].unique())):
-			ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})
+					if entity_algorithm == 'flashtext':
+						for ent, pro in key_pros.items():
+							found = pro.extract_keywords(sub_text)
+							for f in found:
+								ent_list.append({'cluster':ind, 'text':'-', 'label':ent})
+
+					else:
+						doc = nlp(sub_text)
+
+						for ent in doc.ents:
+							if len(ent.text) >2:
+								ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
+
+		if len(ent_list) == 0:
+			for ind in range(len(df_rows[type].unique())):
+				ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})
 
 	ent_df = pd.DataFrame(ent_list).groupby(['cluster', 'label']).count()
 	print(ent_df)
