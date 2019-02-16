@@ -74,7 +74,6 @@ def load_entity_dictionary(f):
 
 	ENTITY_DICT_NAME = f.filename.split('.')[0]
 	ENTITY_DICT_EXTENSION = f.filename.split('.')[1]
-	ENTITY_ALGORITHM = request.form['er_algo']
 
 	if ENTITY_DICT_EXTENSION == 'csv':
 		df = pd.read_csv(f).reset_index(drop=True)
@@ -167,30 +166,32 @@ def upload_entity_dict():
 
 @app.route('/prepare_model', methods=['POST'])
 def prepare_model():
-	global ENTITY_DICT_EXTENSION, ENTITY_HEADER
-	# ENTITY_HEADER = [request.form['entity_type'], request.form['entity_term']]
-	# print(ENTITY_HEADER)
+	global ENTITY_DICT_EXTENSION, ENTITY_HEADER, ENTITY_ALGORITHM
+	ENTITY_ALGORITHM = request.form['er_algo']
+	ENTITY_HEADER = [request.form['entity_type_col'], request.form['entity_term_col']]
+	
 	return render_template('load.html', fext = DATA_FILE_EXTENSION)
 
 @app.route('/run_model', methods=['POST'])
 def run_model():
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json = run_topic_modeling(cluster_K = NUM_OF_CLUSTER, file_name=DATA_FILE_NAME, file_extension=DATA_FILE_EXTENSION, target_column_name=TARGET_COLUMN)
 
-	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json)
+	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json, DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER)
 	save_model_outputs(outputs)
+	print(DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER)
 
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json,
 							km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json, metrics_json = metrics_json)
 
 @app.route('/import_model', methods=['POST'])
 def import_model():
-	with open(os.path.join(os.getcwd(), '%s.%s' % (DATA_FILE_NAME, DATA_FILE_EXTENSION)), 'rb') as f:
+	with open(os.path.join(os.getcwd(), 'data_files', '%s.%s' % (DATA_FILE_NAME, DATA_FILE_EXTENSION)), 'rb') as f:
 		saved_model = pickle.load(f)
 	f.close()
 
 	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json = load_topic_modeling(saved_model)
 
-	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json)
+	outputs = (lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json, DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER)
 	# save_model_outputs(outputs, DATA_FILE_NAME, len(lda_hbar_json['labels'])-1)
 	save_model_outputs(outputs)
 
@@ -199,12 +200,14 @@ def import_model():
 
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
 def load_model(model_name):
+	global DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER
+	
 	with open(os.path.join(os.getcwd(), 'model_output', '%s.pkl' % model_name), 'rb') as f:
 		outputs = pickle.load(f)
 	f.close()
 
-	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json = outputs
-
+	lda_hbar_json, km_hbar_json, dec_hbar_json, lda_scatter_json, km_scatter_json, dec_scatter_json, document_table_json, metrics_json, DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER = outputs
+	print(DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER)
 	return render_template('visual.html', lda_hbar_json = lda_hbar_json, km_hbar_json = km_hbar_json, dec_hbar_json = dec_hbar_json, lda_scatter_json = lda_scatter_json, km_scatter_json = km_scatter_json, dec_scatter_json = dec_scatter_json, document_table_json = document_table_json, metrics_json = metrics_json)
 
 @app.route('/detail', methods=['POST'])
@@ -256,17 +259,19 @@ def get_entities():
 	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
 	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
 
-	print(entity_algorithm)
+	dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)))
+	dic_df = dic_df[ENTITY_HEADER]
+	dic_df.columns = ['entity_type', 'entity_term']
 	key_pros = initialize_keyword_processors(dic_df)
-	if entity_file_name is not None and entity_algorithm == 'spacy':
-		dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (entity_file_name, entity_file_ext)))
-		# print(dic_df.loc[dic_df.shape[0]-1])
+	
+	ent_list = []
 
+	print(ENTITY_ALGORITHM)
+	if DATA_FILE_NAME is not None and ENTITY_ALGORITHM == 'spacy':
+		print(dic_df.loc[dic_df.shape[0]-1])
 		# get_total_matching_num(sub_text, key_procs, is_spacy)
 	else:
 		max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
-
-		ent_list = []
 		for ind, grp in df_rows.groupby(type):
 			cum_len = 0
 			start_ind = 0
@@ -280,7 +285,7 @@ def get_entities():
 					# print(' '.join(sub_text.tolist()))
 					sub_text = ' '.join(sub_text_grp.tolist())
 
-					if entity_algorithm == 'flashtext':
+					if ENTITY_ALGORITHM == 'flashtext':
 						for ent, pro in key_pros.items():
 							found = pro.extract_keywords(sub_text)
 							for f in found:
@@ -293,12 +298,12 @@ def get_entities():
 							if len(ent.text) >2:
 								ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
 
-		if len(ent_list) == 0:
-			for ind in range(len(df_rows[type].unique())):
-				ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})
+	if len(ent_list) == 0:
+		for ind in range(len(df_rows[type].unique())):
+			ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})
 
 	ent_df = pd.DataFrame(ent_list).groupby(['cluster', 'label']).count()
-	print(ent_df)
+	# print(ent_df)
 	json_data = collections.OrderedDict()
 	json_data['counts'] = ent_df.reset_index().to_dict(orient='records')
 	return json.dumps(json_data, ensure_ascii=False, indent='\t').replace('`', '')

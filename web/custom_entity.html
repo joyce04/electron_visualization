@@ -120,8 +120,8 @@
                 {} // search options - define multiple search
                 );
 
-                $('#entity_type_col').value = columns[0]
-                $('#entity_term_col').value = columns[0]
+                document.getElementById('entity_type_col').value = columns[0].replace(/&#39;/g, '').trim()
+                document.getElementById('entity_term_col').value = columns[0].replace(/&#39;/g, '').trim()
             }
         })
     </script>
@@ -160,16 +160,16 @@
                             </td>
                         </tr>
                         <tr style="height: 10%">
-                            <td style="padding: 10px; vertical-align: bottom">
-                                <label>Entity Recognition Algorithm</label>
-                                <select class='model-target-selection' onchange="er_algo(this.value)">
-                                    <option value="flashtext">flashText, Aho-corasick</option>
-                                    <option value="spacy">spaCy, Entity Recognition</option>
-                                </select>
-                            </td>
                             {% if flag == 'init' %}
-                                <td colspan=2 />
+                                <td colspan=3 />
                             {% else %}
+                                <td style="padding: 10px; vertical-align: bottom">
+                                    <label>Entity Recognition Algorithm</label>
+                                    <select class='model-target-selection' onchange="er_algo(this.value)">
+                                        <option value="flashtext">flashText, Aho-corasick</option>
+                                        <option value="spacy">spaCy, Entity Recognition</option>
+                                    </select>
+                                </td>
                                 <td style="text-align: center; width: 30%;">
                                     <label>Entity Type Column</label>
                                     <select id='entity_type' name="entity_type" class='model-target-selection' onchange="column_select('entity_type', this.value)"></select>
@@ -186,7 +186,6 @@
                                 <div id="upload_file">
                                     <form id="upload_file_form" action="/upload_dict" method="post" enctype="multipart/form-data" style="color:#C06C84">
                                         <div class="input-file-container" style="background-color:#C06C84;">
-                                            <input id="er_algo" type="hidden" name="er_algo" value="flashtext">
                                             <input class="input-file" id="file" name="file" type="file">
                                             <label tabindex="0" for="file" class="input-file-trigger" >Upload</label>
                                         </div>
@@ -196,6 +195,7 @@
                             <td style="padding: 10px; vertical-align: top; color:#F67280; width:20%">
                                 <div>
                                     <form id="run_model_form" action='/prepare_model' method='post'>
+                                        <input id="er_algo" type="hidden" name="er_algo" value="flashtext">
                                         <input id="entity_type_col" type="hidden" name="entity_type_col">
                                         <input id="entity_term_col" type="hidden" name="entity_term_col">
                                         <div class="input-file-container" style="background-color:#F67280;">
