@@ -380,9 +380,15 @@ def get_entity():
 			found = pro.extract_keywords(target_text)
 			ent_label = doc.vocab.strings.add(ent)
 			for f in found:
-				f_arr = f.split(' ')
-				f_index = list(filter(lambda x: target_text[x]==f_arr[0], [i for i in range(len(target_text.split(' ')))]))[0]
-				ent_span = Span(doc, f_index, f_index+len(f_arr), label=ent)
+				# print(f)
+				f_arr = f.lower().split(' ')
+				# print(f_arr)
+				print([i for i in range(len(target_text.split(' ')))])
+				f_index = list(filter(lambda x: target_text.lower().split(' ')[x].find(f_arr[0])>=0, [i for i in range(len(target_text.split(' ')))]))[0]
+				# print(f_index)
+				# print(f_index+len(f_arr))
+				# print(ent)
+				ent_span = Span(doc, f_index, f_index+len(f_arr), label=ent_label)
 				ents.append(ent_span)
 		ents.extend(list(doc.ents))
 		doc.ents = ents
