@@ -16,8 +16,6 @@ from topic_modeling import run_topic_modeling, load_topic_modeling
 
 app = Flask(__name__, template_folder='../web/', static_folder='../web')
 
-MODEL_OUTPUT_LIST = os.listdir('./model_output')
-
 DATA_FILE_NAME = ''
 DATA_FILE_EXTENSION = 'none'
 
@@ -32,10 +30,10 @@ NUM_OF_CLUSTER = 8
 TABLE_MAX_WIDTH = 1278
 
 def get_recent_models():
-	model_files = [f for f in MODEL_OUTPUT_LIST if 'pkl' in f]
+	model_files = [f for f in os.listdir('./model_output') if '.pkl' in f]
 	recent_models = []
 
-	for file_name in [f for f in MODEL_OUTPUT_LIST if '.pkl' in f]:
+	for file_name in model_files:
 		recent_model_propeties = file_name.split('.')[0].split('_')
 		# Filename = {model_name}_{num_of_cluster}_{date}_{seq}.pkl
 		if len(recent_model_propeties[-1]) == 8:
@@ -91,7 +89,7 @@ def save_model_outputs(outputs):
 		os.mkdir('model_output')
 
 	todaystr = datetime.today().strftime("%Y%m%d")
-	existedResult = len([f for f in MODEL_OUTPUT_LIST if '%s_%d_%s' % (DATA_FILE_NAME, NUM_OF_CLUSTER, todaystr) in f])
+	existedResult = len([f for f in os.listdir('./model_output') if '%s_%d_%s' % (DATA_FILE_NAME, NUM_OF_CLUSTER, todaystr) in f])
 	resultfname = '%s_%d_%s.pkl' % (DATA_FILE_NAME, NUM_OF_CLUSTER, todaystr) if existedResult == 0 else '%s_%d_%s_%d.pkl' % (DATA_FILE_NAME, NUM_OF_CLUSTER, todaystr, (existedResult+1))
 
 	with open(os.path.join(os.getcwd(), 'model_output', resultfname), 'wb') as f:
