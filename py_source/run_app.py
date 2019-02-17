@@ -161,7 +161,7 @@ def upload_custom_entity():
 def upload_entity_dict():
 	df = load_entity_dictionary(f = request.files['file'])
 	col_width, jsonp = make_jqgrid_data(df)
-
+	print('upload finished')
 	return render_template('custom_entity.html', column = df.columns.tolist(), colw = col_width, data = jsonp, flag='upload')
 
 @app.route('/prepare_model', methods=['POST'])
@@ -169,7 +169,7 @@ def prepare_model():
 	global ENTITY_DICT_EXTENSION, ENTITY_HEADER, ENTITY_ALGORITHM
 	ENTITY_ALGORITHM = request.form['er_algo']
 	ENTITY_HEADER = [request.form['entity_type_col'], request.form['entity_term_col']]
-	
+
 	return render_template('load.html', fext = DATA_FILE_EXTENSION)
 
 @app.route('/run_model', methods=['POST'])
@@ -201,7 +201,7 @@ def import_model():
 @app.route('/load_model/<model_name>', methods=['GET', 'POST'])
 def load_model(model_name):
 	global DATA_FILE_NAME, DATA_FILE_EXTENSION, ENTITY_DICT_NAME, ENTITY_DICT_EXTENSION, ENTITY_ALGORITHM, ENTITY_HEADER, TARGET_COLUMN, NUM_OF_CLUSTER
-	
+
 	with open(os.path.join(os.getcwd(), 'model_output', '%s.pkl' % model_name), 'rb') as f:
 		outputs = pickle.load(f)
 	f.close()
@@ -259,15 +259,17 @@ def get_entities():
 	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
 	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
 
-	dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)))
+	dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)))
 	dic_df = dic_df[ENTITY_HEADER]
-	dic_df.columns = ['entity_type', 'entity_term']
+	# print(dic_df)
+	# dic_df.columns = ['entity_type', 'entity_term']
 	key_pros = initialize_keyword_processors(dic_df)
-	
+
 	ent_list = []
 
 	print(ENTITY_ALGORITHM)
-	if DATA_FILE_NAME is not None and ENTITY_ALGORITHM == 'spacy':
+	# print(DATA_FILE_NAME)
+	if DATA_FILE_NAME !='' and ENTITY_ALGORITHM == 'spacy':
 		print(dic_df.loc[dic_df.shape[0]-1])
 		# get_total_matching_num(sub_text, key_procs, is_spacy)
 	else:
@@ -298,6 +300,7 @@ def get_entities():
 							if len(ent.text) >2:
 								ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
 
+	print(ent_list)
 	if len(ent_list) == 0:
 		for ind in range(len(df_rows[type].unique())):
 			ent_list.append({'cluster': ind, 'text': np.nan, 'label': np.nan})

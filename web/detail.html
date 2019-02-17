@@ -152,15 +152,20 @@
       d3.select('#entities_div').selectAll('mark').remove()
       d3.select('#entities_div').selectAll('br').remove()
       for (i = 0; i < entities.length; i++) {
-          d3.select('#entities_div').append('mark')
-            .attr('class', 'mark')
-            .style('background', mark_colors[entities[i]['label']][0])
-            .text(entities[i]['text'])
-            .append('span')
-            .attr('class', 'mark_span')
-            .text(entities[i]['label'])
-          d3.select('#entities_div').append('br')
-          d3.select('#entities_div').append('br')
+
+        _background = mark_colors[entities[i]['label']]
+        if (!_background) _background = '#ff8197'
+        else _background = _background[0]
+
+        d3.select('#entities_div').append('mark')
+          .attr('class', 'mark')
+          .style('background', _background)
+          .text(entities[i]['text'])
+          .append('span')
+          .attr('class', 'mark_span')
+          .text(entities[i]['label'])
+        d3.select('#entities_div').append('br')
+        d3.select('#entities_div').append('br')
       }
 
       origin_display = d3.select('#entities_container').style('display')
