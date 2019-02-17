@@ -249,9 +249,12 @@ def initialize_keyword_processors(entity_df):
 @app.route('/entities', methods=['POST'])
 def get_entities():
 	import numpy as np
+	import random
+	from spacy.util import minibatch, compounding
 
 	# spacy.util.set_data_path('./py_source/nlp_data')
-	nlp = spacy.load('en')
+	global NLP
+	NLP = spacy.load('en')
 
 	type = 'topic_'+request.form['type']
 	docdata = json.loads(request.form['data'])
@@ -259,19 +262,77 @@ def get_entities():
 	df_rows['document'] = df_rows.document.apply(lambda x: ' '.join(str(x).split()))
 	df_rows['length'] = df_rows.document.apply(lambda x: len(str(x)))
 
-	dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)))
-	dic_df = dic_df[ENTITY_HEADER]
+	global KEY_PROS
+	if DATA_FILE_NAME !='':
+		dic_df = pd.read_csv(os.path.join(os.getcwd(), 'entity_files/', '%s.%s' % (DATA_FILE_NAME, ENTITY_DICT_EXTENSION)))
+		dic_df = dic_df[ENTITY_HEADER]
 	# print(dic_df)
-	# dic_df.columns = ['entity_type', 'entity_term']
-	key_pros = initialize_keyword_processors(dic_df)
+		KEY_PROS = initialize_keyword_processors(dic_df)
+	else:
+		print('no entity file')
 
 	ent_list = []
 
 	print(ENTITY_ALGORITHM)
-	# print(DATA_FILE_NAME)
+
 	if DATA_FILE_NAME !='' and ENTITY_ALGORITHM == 'spacy':
-		print(dic_df.loc[dic_df.shape[0]-1])
-		# get_total_matching_num(sub_text, key_procs, is_spacy)
+		# print(dic_df.loc[dic_df.shape[0]-1])
+		train_docs = []
+
+		for idx, row in df_rows.iterrows():
+			doc = row['document']
+
+			train_ents = []
+			for ent, processor in KEY_PROS.items():
+				found = processor.extract_keywords(doc)
+				for f in found:
+					if doc.find(f)>=0:
+						train_ents.append((doc.find(f), doc.find(f)+len(f), ent))
+			train_docs.append((doc, {'entities':train_ents}))
+
+		if 'ner' not in NLP.pipe_names:
+			ner = NLP.create_pipe('ner')
+			NLP.add_pipe(ner)
+		else:
+			ner = NLP.get_pipe('ner')
+
+		for k in KEY_PROS.keys():
+			ner.add_label(k)
+		optimizer = NLP.entity.create_optimizer()
+		other_pipes = [pipe for pipe in NLP.pipe_names if pipe != 'ner']
+
+		with NLP.disable_pipes(*other_pipes):  # only train NER
+			for itn in range(10):
+				random.shuffle(train_docs)
+				losses = {}
+
+				batches = minibatch(train_docs, size=compounding(4., 32., 1.001))
+				for batch in batches:
+					texts, annotations = zip(*batch)
+					NLP.update(texts, annotations, sgd=optimizer, drop=0.1, losses=losses)
+				print('Losses', losses)
+
+		max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
+		en_nlp = spacy.load('en')
+		for ind, grp in df_rows.groupby(type):
+			cum_len = 0
+			start_ind = 0
+
+			for idx, row in grp.reset_index().iterrows():
+				cum_len += row.length
+				if cum_len >= max_len :
+					sub_text_grp = grp.loc[start_ind:idx]['document']
+					# print(sub_text)
+					start_ind =idx
+					# print(' '.join(sub_text.tolist()))
+					sub_text = ' '.join(sub_text_grp.tolist())
+
+					doc = NLP(sub_text)
+					doc_ = en_nlp(sub_text)
+					for ent in (doc.ents+doc_.ents):
+						if len(ent.text) >2:
+							ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
+
 	else:
 		max_len = 90000 if 90000 < df_rows.shape[0] else df_rows.shape[0]
 		for ind, grp in df_rows.groupby(type):
@@ -287,18 +348,15 @@ def get_entities():
 					# print(' '.join(sub_text.tolist()))
 					sub_text = ' '.join(sub_text_grp.tolist())
 
-					if ENTITY_ALGORITHM == 'flashtext':
-						for ent, pro in key_pros.items():
-							found = pro.extract_keywords(sub_text)
-							for f in found:
-								ent_list.append({'cluster':ind, 'text':'-', 'label':ent})
+					for ent, pro in KEY_PROS.items():
+						found = pro.extract_keywords(sub_text)
+						for f in found:
+							ent_list.append({'cluster':ind, 'text':'-', 'label':ent})
 
-					else:
-						doc = nlp(sub_text)
-
-						for ent in doc.ents:
-							if len(ent.text) >2:
-								ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
+					doc = NLP(sub_text)
+					for ent in doc.ents:
+						if len(ent.text) >2:
+							ent_list.append({'cluster':ind, 'text':ent.text, 'label':ent.label_})
 
 	print(ent_list)
 	if len(ent_list) == 0:
@@ -313,11 +371,24 @@ def get_entities():
 
 @app.route('/entity', methods=['POST'])
 def get_entity():
+	from spacy.tokens import Span
+
 	target_text = request.form['content']
 
-	# spacy.util.set_data_path('./py_source/nlp_data')
-	nlp = spacy.load('en')
-	doc = nlp(target_text)
+	doc = NLP(target_text)
+	if KEY_PROS is not None:
+		ents = []
+		for ent, pro in KEY_PROS.items():
+			found = pro.extract_keywords(target_text)
+			ent_label = doc.vocab.strings.add(ent)
+			for f in found:
+				f_arr = f.split(' ')
+				f_index = list(filter(lambda x: target_text[x]==f_arr[0], [i for i in range(len(target_text.split(' ')))]))[0]
+				ent_span = Span(doc, f_index, f_index+len(f_arr), label=ent)
+				ents.append(ent_span)
+		ents.extend(list(doc.ents))
+		doc.ents = ents
+
 	dochtml = displacy.render(doc, style='ent')
 
 	return json.dumps({ 'dochtml': dochtml }, ensure_ascii=False, indent='\t')
