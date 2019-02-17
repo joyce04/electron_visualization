@@ -391,7 +391,7 @@ def get_entity():
 				# print(ent)
 				ent_span = Span(doc, f_index, f_index+len(f_arr), label=ent_label)
 				ents.append(ent_span)
-				orig_doc_entities = list(lambda x: x.text.lower().find(f_arr)<0, orig_doc_entities))
+				orig_doc_entities = list(filter(lambda x: x.text.lower().find(f_arr[0])<0, orig_doc_entities))
 				
 		ents.extend(orig_doc_entities)
 		doc.ents = ents
