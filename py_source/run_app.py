@@ -221,7 +221,7 @@ def initialize_keyword_processors(entity_df):
 	from flashtext import KeywordProcessor
 
 	key_pros = {}
-	for e, r in entity_df.groupby('entity_type'):
+	for e, r in entity_df.groupby(ENTITY_HEADER[0]):
 		key_pro = KeywordProcessor(case_sensitive=False)
 		for v in r.entity_term.values.tolist():
 			key_pro.add_keyword(v.strip())
