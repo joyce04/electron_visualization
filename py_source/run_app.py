@@ -374,6 +374,7 @@ def get_entity():
 	target_text = request.form['content']
 
 	doc = NLP(target_text)
+	orig_doc_entities = list(doc.ents)
 	if KEY_PROS is not None:
 		ents = []
 		for ent, pro in KEY_PROS.items():
@@ -390,7 +391,9 @@ def get_entity():
 				# print(ent)
 				ent_span = Span(doc, f_index, f_index+len(f_arr), label=ent_label)
 				ents.append(ent_span)
-		ents.extend(list(doc.ents))
+				orig_doc_entities = list(lambda x: x.text.lower().find(f_arr)<0, orig_doc_entities))
+				
+		ents.extend(orig_doc_entities)
 		doc.ents = ents
 
 	dochtml = displacy.render(doc, style='ent')
