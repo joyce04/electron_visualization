@@ -33,7 +33,7 @@
   "devDependencies": {
     "asar": "^0.14.6",
     "electron": "^2.0.14",
-    "electron-packager": "^12.2.0"
+    "electron-packager": "^16.0.0"
   },
   "dependencies": {
     "d3": "^5.7.0",
